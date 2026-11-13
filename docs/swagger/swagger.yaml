@@ -21,30 +21,32 @@ paths:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
       summary: Get project
-      responses: {'200': {description: Project}}
+      responses: {'200': {description: Project, content: {application/json: {schema: {$ref: '#/components/schemas/Project'}}}}}
   /v1/projects/{projectId}/groups:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
       summary: List groups
-      responses: {'200': {description: Groups}}
+      responses: {'200': {description: Groups, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Group'}}}}}}
     post:
       summary: Create group (project admin)
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/GroupInput'}}}}
-      responses: {'201': {description: Created}}
+      responses: {'201': {description: Created, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}
   /v1/projects/{projectId}/groups/{groupId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
-    get: {summary: Get group, responses: {'200': {description: Group}}}
+    get: {summary: Get group, responses: {'200': {description: Group, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}}
     patch:
       summary: Update group (project admin)
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [name], properties: {name: {type: string}, status: {type: string}}}}}}
-      responses: {'200': {description: Updated}}
+      responses: {'200': {description: Updated, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}
     delete: {summary: Delete group (project admin), responses: {'204': {description: Deleted}}}
   /v1/projects/{projectId}/devices:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
-    get: {summary: List devices, responses: {'200': {description: Devices}}}
+    get:
+      summary: List devices
+      responses: {'200': {description: Devices, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Device'}}}}}}
   /v1/projects/{projectId}/devices/{deviceId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
-    get: {summary: Get device, responses: {'200': {description: Device}}}
+    get: {summary: Get device, responses: {'200': {description: Device, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}}}
     delete: {summary: Revoke device (admin/editor), responses: {'204': {description: Revoked}}}
   /v1/projects/{projectId}/devices/registration/challenge:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
@@ -57,7 +59,7 @@ paths:
     post:
       summary: Verify attestation and register a device
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegistrationVerify'}}}}
-      responses: {'201': {description: Registered}, '422': {description: Invalid or unsupported attestation}}
+      responses: {'201': {description: Registered, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}, '422': {description: Invalid or unsupported attestation}}
   /v1/projects/{projectId}/devices/{deviceId}/challenge:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     post: {summary: Issue a device key proof challenge, responses: {'201': {description: Challenge}}}
@@ -69,7 +71,9 @@ paths:
       responses: {'200': {description: Verified}}
   /v1/projects/{projectId}/groups/{groupId}/devices:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
-    get: {summary: List group devices, responses: {'200': {description: Devices}}}
+    get:
+      summary: List group devices
+      responses: {'200': {description: Devices, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Device'}}}}}}
     post:
       summary: Add device to group
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [device_id], properties: {device_id: {type: string, format: uuid}}}}}}
@@ -114,10 +118,14 @@ paths:
     delete: {summary: Delete group role binding, responses: {'204': {description: Deleted}}}
   /v1/projects/{projectId}/attestation/capabilities:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
-    get: {summary: List verifier support, responses: {'200': {description: Capabilities}}}
+    get:
+      summary: List verifier support
+      responses: {'200': {description: Capabilities, content: {application/json: {schema: {$ref: '#/components/schemas/AttestationCapabilities'}}}}}
   /v1/projects/{projectId}/devices/{deviceId}/attestation:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
-    get: {summary: List device attestation records, responses: {'200': {description: Records}}}
+    get:
+      summary: List device attestation records
+      responses: {'200': {description: Records, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/AttestationRecord'}}}}}}
   /v1/platform/provisioning/plan:
     post:
       summary: Plan a Keycloak + Gorape provisioning manifest (platform admin)
@@ -156,7 +164,63 @@ components:
         keycloak: {type: object, description: 'Realm, roles, groups, clients, protocol mappers and Authorization Services resources/scopes/policies/permissions'}
         gorape: {type: object, description: 'Project, role definitions, groups and role bindings'}
     Platform: {type: string, enum: [android, windows, ios, macos]}
-    Project: {type: object, required: [id, slug, name, issuer], properties: {id: {type: string, format: uuid}, slug: {type: string}, name: {type: string}, issuer: {type: string, format: uri}}}
+    Project:
+      type: object
+      required: [id, slug, name, issuer, realm, status]
+      properties:
+        id: {type: string, format: uuid}
+        slug: {type: string}
+        name: {type: string}
+        issuer: {type: string, format: uri}
+        realm: {type: string}
+        status: {type: string}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    Group:
+      type: object
+      required: [id, project_id, slug, name, status]
+      properties:
+        id: {type: string, format: uuid}
+        project_id: {type: string, format: uuid}
+        slug: {type: string}
+        name: {type: string}
+        status: {type: string}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    Device:
+      type: object
+      required: [id, project_id, owner_id, platform, display_name, status, registered_at, version]
+      properties:
+        id: {type: string, format: uuid}
+        project_id: {type: string, format: uuid}
+        owner_id: {type: string, format: uuid}
+        platform: {$ref: '#/components/schemas/Platform'}
+        display_name: {type: string}
+        status: {type: string, enum: [active, revoked]}
+        registered_at: {type: string, format: date-time}
+        last_verified_at: {type: string, format: date-time}
+        revoked_at: {type: string, format: date-time}
+        version: {type: integer, minimum: 1}
+    AttestationRecord:
+      type: object
+      required: [id, project_id, key_id, attestation_type, security_level, verification_status, verifier_version, verified_at]
+      properties:
+        id: {type: string, format: uuid}
+        project_id: {type: string, format: uuid}
+        key_id: {type: string, format: uuid}
+        attestation_type: {type: string}
+        security_level: {type: string}
+        verification_status: {type: string}
+        verifier_version: {type: string}
+        verified_at: {type: string, format: date-time}
+        evidence_reference: {type: string}
+    AttestationCapabilities:
+      type: object
+      required: [verifiers]
+      properties:
+        verifiers:
+          type: object
+          additionalProperties: {type: string, enum: [implemented, unsupported, unconfigured]}
     GroupInput: {type: object, required: [slug, name], properties: {slug: {type: string, pattern: '^[a-z0-9-]+$'}, name: {type: string}}}
     Challenge: {type: object, required: [challenge_id, challenge, expires_at], properties: {challenge_id: {type: string, format: uuid}, challenge: {type: string, description: Base64url random bytes}, expires_at: {type: string, format: date-time}}}
     RegistrationVerify:

@@ -48,6 +48,6 @@ func (rcvr *projectRepository) PutProject(ctx context.Context, v *model.Project)
 
 func (rcvr *projectRepository) Projects(ctx context.Context, principal uuid.UUID) ([]model.Project, error) {
 	var v []model.Project
-	e := rcvr.db.WithContext(ctx).Table("projects p").Select("p.*").Joins("JOIN project_role_bindings r ON r.project_id=p.id").Where("r.principal_id=? AND p.status='active'", principal).Order("p.slug").Scan(&v).Error
+	e := rcvr.db.WithContext(ctx).Table("projects p").Select("p.*").Joins("JOIN role_bindings r ON r.project_id=p.id AND r.scope='project'").Where("r.principal_id=? AND p.status='active'", principal).Order("p.slug").Scan(&v).Error
 	return v, e
 }

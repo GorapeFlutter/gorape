@@ -9,7 +9,7 @@ import (
 type Device struct {
 	ID               uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
 	ProjectID        uuid.UUID  `gorm:"type:uuid;not null;index" json:"project_id"`
-	OwnerPrincipalID uuid.UUID  `gorm:"type:uuid;not null" json:"owner_id"`
+	OwnerPrincipalID uuid.UUID  `gorm:"column:owner_id;type:uuid;not null" json:"owner_id"`
 	Platform         string     `gorm:"not null" json:"platform"`
 	DisplayName      string     `gorm:"not null" json:"display_name"`
 	Status           string     `gorm:"not null" json:"status"`
