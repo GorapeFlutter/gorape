@@ -61,11 +61,11 @@ func (rcvr *provisioningRepository) ApplyGorape(ctx context.Context, spec provis
 			return e
 		default:
 			updates := map[string]any{
-				"name":           spec.Project.Name,
-				"issuer":    issuer,
-				"realm": spec.Project.Realm,
-				"status":         status,
-				"updated_at":     now,
+				"name":       spec.Project.Name,
+				"issuer":     issuer,
+				"realm":      spec.Project.Realm,
+				"status":     status,
+				"updated_at": now,
 			}
 			if e = tx.Model(&model.Project{}).Where("id=?", project.ID).Updates(updates).Error; e != nil {
 				return fmt.Errorf("update project: %w", e)
