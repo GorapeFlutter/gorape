@@ -1,0 +1,17 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: gorape-localstack
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=secretsmanager
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./scripts:/etc/localstack/init/ready.d
+      - ./etc:/etc/localstack/init/etc:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gorape-network

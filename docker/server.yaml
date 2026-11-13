@@ -1,0 +1,19 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gorape
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./etc/server.yaml.docker:/app/etc/server.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - gorape-network
+    restart: unless-stopped

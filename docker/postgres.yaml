@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gorape-postgres
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gorape
+      TZ: Asia/Tokyo
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./scripts/data/postgres/000-keycloak.sql:/docker-entrypoint-initdb.d/000-keycloak.sql:ro
+      - ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/001-gorape.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - gorape-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped

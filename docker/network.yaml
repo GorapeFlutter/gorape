@@ -1,0 +1,7 @@
+networks:
+  gorape-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.88.0.0/24
+          gateway: 10.88.0.1
