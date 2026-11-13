@@ -2,7 +2,7 @@
 
 Gorapeは、Keycloakで認証された主体に対してハードウェアアテステーション検証とデバイス管理APIを提供する独立したGoバックエンドです。認証、ユーザー管理、パスキー、MFAはKeycloakに委譲し、Gorapeはパスワードやハードウェア秘密鍵を保持しません。
 
-ProjectはKeycloak Realmと1対1で対応し、GroupはProject配下の管理領域です。権限はadmin/editor/viewerで、Project権限をGroupで暗黙に降格しません。Root Domainはインフラ境界でありDBやREST APIには存在しません。
+ProjectはKeycloak Realmと1対1で対応し、GroupはProject配下の管理領域です。権限は固定ロールではなく、プロジェクト単位の細粒度パーミッション（`project:read`、`device:register` など）で評価します。Gorapeのロールバインディングに加え、Keycloakのrealmロール・clientロール・`/gorape/projects/<slug>/...` 配下のグループパスをリクエスト時に解決するため、Keycloak側の動的な権限変更がそのまま反映されます。KeycloakとGorapeの設定は `gorape-admin provision plan|apply -f manifest.yaml` でサーバ経由で投入できます。詳細は `docs/architecture/authorization.md` を参照してください。
 
 現時点ではAndroid Key Attestationを優先実装しています。Windows TPM、iOS、macOSは明示的にunsupportedを返します。
 

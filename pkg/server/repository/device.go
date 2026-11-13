@@ -14,12 +14,13 @@ type Device interface {
 	Devices(ctx context.Context, project uuid.UUID) ([]model.Device, error)
 	Device(ctx context.Context, project, id uuid.UUID) (model.Device, error)
 	DeviceKey(ctx context.Context, project, device uuid.UUID) (model.DeviceKey, error)
-	RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.AttestationRecord, actor uuid.UUID) error
+	RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.Attestation, actor uuid.UUID) error
 	RevokeDevice(ctx context.Context, project, id, actor uuid.UUID) error
 	MarkDeviceVerified(ctx context.Context, project, id, actor uuid.UUID) error
 	GroupDevices(ctx context.Context, project, group uuid.UUID) ([]model.Device, error)
 	BindDevice(ctx context.Context, project, group, device uuid.UUID) error
 	UnbindDevice(ctx context.Context, project, group, device uuid.UUID) error
+	DeviceGroupIDs(ctx context.Context, project, device uuid.UUID) ([]uuid.UUID, error)
 }
 
 type deviceRepository struct {
@@ -48,7 +49,7 @@ func (rcvr *deviceRepository) DeviceKey(ctx context.Context, project, device uui
 	return v, mapNotFound(e)
 }
 
-func (rcvr *deviceRepository) RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.AttestationRecord, actor uuid.UUID) error {
+func (rcvr *deviceRepository) RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.Attestation, actor uuid.UUID) error {
 	return rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := time.Now().UTC()
 		d.ID = uuid.New()
@@ -119,4 +120,12 @@ func (rcvr *deviceRepository) BindDevice(ctx context.Context, project, group, de
 
 func (rcvr *deviceRepository) UnbindDevice(ctx context.Context, project, group, device uuid.UUID) error {
 	return rcvr.db.WithContext(ctx).Where("project_id=? AND group_id=? AND device_id=?", project, group, device).Delete(&model.DeviceGroupBinding{}).Error
+}
+
+func (rcvr *deviceRepository) DeviceGroupIDs(ctx context.Context, project, device uuid.UUID) ([]uuid.UUID, error) {
+	var v []uuid.UUID
+	e := rcvr.db.WithContext(ctx).Model(&model.DeviceGroupBinding{}).
+		Where("project_id=? AND device_id=? AND status='active'", project, device).
+		Pluck("group_id", &v).Error
+	return v, e
 }

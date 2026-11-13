@@ -35,6 +35,26 @@ func Authenticate(s *usecase.Service, byIssuer bool) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// AuthenticatePlatform validates a platform administrator token. It does not
+// require a Gorape project, which is what allows bootstrapping the first
+// project through the server.
+func AuthenticatePlatform(s *usecase.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		h := c.GetHeader("Authorization")
+		if !strings.HasPrefix(h, "Bearer ") {
+			abortAuth(c, errors.New("Bearer access token required"))
+			return
+		}
+		a, e := s.AuthenticatePlatform(c.Request.Context(), strings.TrimPrefix(h, "Bearer "))
+		if e != nil {
+			abortAuth(c, e)
+			return
+		}
+		c.Set(authContextKey, a)
+		c.Next()
+	}
+}
 func Auth(c *gin.Context) (model.AuthContext, bool) {
 	v, ok := c.Get(authContextKey)
 	if !ok {

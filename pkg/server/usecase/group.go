@@ -12,8 +12,8 @@ import (
 )
 
 type Group interface {
-	RequireGroup(ctx context.Context, a model.AuthContext, g uuid.UUID, min model.Role) error
-	CreateGroup(ctx context.Context, a model.AuthContext, q request.GroupCreate) (model.GroupDomain, error)
+	RequireGroup(ctx context.Context, a model.AuthContext, g uuid.UUID, permission model.Permission) error
+	CreateGroup(ctx context.Context, a model.AuthContext, q request.GroupCreate) (model.Group, error)
 }
 
 type groupUsecase struct {
@@ -25,26 +25,30 @@ func NewGroup(store *repository.Store, projectUC Project) Group {
 	return &groupUsecase{store: store, projectUC: projectUC}
 }
 
+// Allows is retained for tests and for callers that still reason in role ranks.
+// New authorization decisions should use permission sets.
 func Allows(projectRole, groupRole, min model.Role) bool {
 	return projectRole.Rank() >= min.Rank() || groupRole.Rank() >= min.Rank()
 }
 
-func (rcvr *groupUsecase) RequireGroup(ctx context.Context, a model.AuthContext, g uuid.UUID, min model.Role) error {
-	pr, _ := rcvr.store.ProjectRole(ctx, a.Project.ID, a.Principal.ID)
-	gr, _ := rcvr.store.GroupRole(ctx, a.Project.ID, g, a.Principal.ID)
-	if !Allows(pr, gr, min) {
+func (rcvr *groupUsecase) RequireGroup(ctx context.Context, a model.AuthContext, g uuid.UUID, permission model.Permission) error {
+	set, _, e := rcvr.projectUC.EffectivePermissions(ctx, a, &g)
+	if e != nil {
+		return ErrForbidden
+	}
+	if !set.Allows(permission) {
 		return ErrForbidden
 	}
 	return nil
 }
 
-func (rcvr *groupUsecase) CreateGroup(ctx context.Context, a model.AuthContext, q request.GroupCreate) (model.GroupDomain, error) {
-	if e := rcvr.projectUC.RequireProject(ctx, a, model.RoleAdmin); e != nil {
-		return model.GroupDomain{}, e
+func (rcvr *groupUsecase) CreateGroup(ctx context.Context, a model.AuthContext, q request.GroupCreate) (model.Group, error) {
+	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionProjectManage); e != nil {
+		return model.Group{}, e
 	}
 	if !regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,62}$`).MatchString(q.Slug) {
-		return model.GroupDomain{}, errors.New("group slug must contain lowercase letters, numbers, and hyphens")
+		return model.Group{}, errors.New("group slug must contain lowercase letters, numbers, and hyphens")
 	}
-	v := model.GroupDomain{ProjectID: a.Project.ID, Slug: q.Slug, Name: q.Name}
+	v := model.Group{ProjectID: a.Project.ID, Slug: q.Slug, Name: q.Name}
 	return v, rcvr.store.CreateGroup(ctx, &v)
 }

@@ -36,11 +36,17 @@ make build
   - `gorape-admin` / `ChangeMe123!` (temporary; change on first login)
   - `user01` ... `user50` / `Password123!`
 - Development groups: `group001` ... `group100`
+- Dynamic authorization groups: `/gorape/projects/demo/roles/admin` and
+  `/gorape/projects/demo/groups/demo-team/roles/editor`
+- Realm roles: `admin`, `editor`, `viewer`, `gorape-platform-admin`,
+  `gorape-admin`, `gorape-editor`, `gorape-viewer`
 - User emails use the `@gf.local` domain
 
-Keycloak groups and realm roles are identity-provider data only. Gorape authorization is
-derived from its own PostgreSQL project/group role bindings (`admin` / `editor` / `viewer`),
-never from Keycloak realm roles or groups.
+Keycloak realm/client roles and group paths under `/gorape/projects/<slug>/...`
+are resolved during every Gorape authorization decision. Gorape role bindings in
+PostgreSQL still grant roles directly, and the two sources are combined. Built-in
+role definitions map to `gorape-admin`, `gorape-editor`, and `gorape-viewer` by
+convention.
 
 To rebuild the realm after editing the JSON, recreate the containers and their volumes:
 
@@ -48,6 +54,20 @@ To rebuild the realm after editing the JSON, recreate the containers and their v
 make dev-down
 make dev-up
 ```
+
+## Declarative provisioning
+
+`provisioning.example.yaml` declares Keycloak roles/groups/clients/authorization
+resources and Gorape projects/roles/groups/bindings in one document:
+
+```bash
+.bin/gorape-admin -c etc/admin.yaml provision plan  -f etc/provisioning.example.yaml
+.bin/gorape-admin -c etc/admin.yaml provision apply -f etc/provisioning.example.yaml
+```
+
+The CLI calls the Gorape server. The server applies Keycloak via the Admin REST
+API and Gorape in one PostgreSQL transaction. See
+[../docs/architecture/authorization.md](../docs/architecture/authorization.md).
 
 ## Server Configuration
 
@@ -63,6 +83,17 @@ Application:
       provider_urls: {}
     attestation:
       android_trust_anchors: []
+    platform:
+      issuer: http://localhost:8080/realms/gorape
+      provider_url: ""
+      admin_roles: [gorape-platform-admin, admin]
+    keycloak:
+      base_url: http://localhost:8080
+      auth_realm: master
+      admin_realm: gorape
+      client_id: admin-cli
+      username: admin
+      password: admin
 PostgreSQL:
   host: localhost
   db: gorape

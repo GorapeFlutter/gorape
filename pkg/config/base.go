@@ -51,6 +51,20 @@ type OIDCConfig struct {
 type AttestationConfig struct {
 	AndroidTrustAnchors []string `yaml:"android_trust_anchors"`
 }
+type PlatformConfig struct {
+	Issuer      string   `yaml:"issuer"`
+	ProviderURL string   `yaml:"provider_url"`
+	AdminRoles  []string `yaml:"admin_roles"`
+}
+type KeycloakConfig struct {
+	BaseURL      string `yaml:"base_url"`
+	AuthRealm    string `yaml:"auth_realm"`
+	AdminRealm   string `yaml:"admin_realm"`
+	ClientID     string `yaml:"client_id"`
+	ClientSecret string `yaml:"client_secret"`
+	Username     string `yaml:"username"`
+	Password     string `yaml:"password"`
+}
 type Server struct {
 	Port             int               `yaml:"port"`
 	LogLevel         string            `yaml:"log_level"`
@@ -59,6 +73,8 @@ type Server struct {
 	ChallengeTTL     time.Duration     `yaml:"-"`
 	ChallengeTTLText string            `yaml:"challenge_ttl"`
 	Attestation      AttestationConfig `yaml:"attestation"`
+	Platform         PlatformConfig    `yaml:"platform"`
+	Keycloak         KeycloakConfig    `yaml:"keycloak"`
 }
 type ClientOIDCConfig struct {
 	IssuerURL   string   `yaml:"issuer_url"`
@@ -124,6 +140,18 @@ func finishConfig(cfg YamlConfig) *BaseConfig {
 	cfg.Application.Server.ChallengeTTL = ttl
 	if cfg.Application.Server.Redis.ChallengePrefix == "" {
 		cfg.Application.Server.Redis.ChallengePrefix = "gorape:challenge:"
+	}
+	if len(cfg.Application.Server.Platform.AdminRoles) == 0 {
+		cfg.Application.Server.Platform.AdminRoles = []string{"gorape-platform-admin"}
+	}
+	if cfg.Application.Server.Keycloak.AuthRealm == "" {
+		cfg.Application.Server.Keycloak.AuthRealm = "master"
+	}
+	if cfg.Application.Server.Keycloak.AdminRealm == "" {
+		cfg.Application.Server.Keycloak.AdminRealm = cfg.Application.Server.Keycloak.AuthRealm
+	}
+	if cfg.Application.Server.Keycloak.ClientID == "" {
+		cfg.Application.Server.Keycloak.ClientID = "admin-cli"
 	}
 	if cfg.Logger.Component == "" {
 		cfg.Logger.Component = "gorape"

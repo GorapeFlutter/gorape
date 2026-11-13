@@ -26,11 +26,11 @@ func (rcvr *projectController) ListProjects(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionProjectRead); e != nil {
 		fail(c, http.StatusForbidden, e)
 		return
 	}
-	c.JSON(http.StatusOK, []model.ProjectDomain{x.Project})
+	c.JSON(http.StatusOK, []model.Project{x.Project})
 }
 
 func (rcvr *projectController) GetProject(c *gin.Context) {
@@ -38,7 +38,7 @@ func (rcvr *projectController) GetProject(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionProjectRead); e != nil {
 		fail(c, http.StatusForbidden, e)
 		return
 	}

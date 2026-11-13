@@ -19,27 +19,30 @@ type APIInterface interface {
 	Assignment
 	Role
 	Attestation
+	Provisioning
 }
 
 type API struct {
-	service     *usecase.Service
-	project     Project
-	group       Group
-	device      Device
-	assignment  Assignment
-	role        Role
-	attestation Attestation
+	service      *usecase.Service
+	project      Project
+	group        Group
+	device       Device
+	assignment   Assignment
+	role         Role
+	attestation  Attestation
+	provisioning Provisioning
 }
 
 func NewAPI(s *usecase.Service) *API {
 	return &API{
-		service:     s,
-		project:     NewProject(s),
-		group:       NewGroup(s),
-		device:      NewDevice(s),
-		assignment:  NewAssignment(s),
-		role:        NewRole(s),
-		attestation: NewAttestation(s),
+		service:      s,
+		project:      NewProject(s),
+		group:        NewGroup(s),
+		device:       NewDevice(s),
+		assignment:   NewAssignment(s),
+		role:         NewRole(s),
+		attestation:  NewAttestation(s),
+		provisioning: NewProvisioning(s),
 	}
 }
 
@@ -69,16 +72,23 @@ func (rcvr *API) BindDevice(c *gin.Context)   { rcvr.assignment.BindDevice(c) }
 func (rcvr *API) UnbindDevice(c *gin.Context) { rcvr.assignment.UnbindDevice(c) }
 
 // Role delegation
-func (rcvr *API) ProjectRoles(c *gin.Context)      { rcvr.role.ProjectRoles(c) }
-func (rcvr *API) PutProjectRole(c *gin.Context)    { rcvr.role.PutProjectRole(c) }
-func (rcvr *API) DeleteProjectRole(c *gin.Context) { rcvr.role.DeleteProjectRole(c) }
-func (rcvr *API) GroupRoles(c *gin.Context)        { rcvr.role.GroupRoles(c) }
-func (rcvr *API) PutGroupRole(c *gin.Context)      { rcvr.role.PutGroupRole(c) }
-func (rcvr *API) DeleteGroupRole(c *gin.Context)   { rcvr.role.DeleteGroupRole(c) }
+func (rcvr *API) Permissions(c *gin.Context)            { rcvr.role.Permissions(c) }
+func (rcvr *API) ProjectRoles(c *gin.Context)           { rcvr.role.ProjectRoles(c) }
+func (rcvr *API) ProjectRoleDefinitions(c *gin.Context) { rcvr.role.ProjectRoleDefinitions(c) }
+func (rcvr *API) PutRoleDefinition(c *gin.Context)      { rcvr.role.PutRoleDefinition(c) }
+func (rcvr *API) DeleteRoleDefinition(c *gin.Context)   { rcvr.role.DeleteRoleDefinition(c) }
+func (rcvr *API) PutProjectRole(c *gin.Context)         { rcvr.role.PutProjectRole(c) }
+func (rcvr *API) DeleteBinding(c *gin.Context)          { rcvr.role.DeleteBinding(c) }
+func (rcvr *API) GroupRoles(c *gin.Context)             { rcvr.role.GroupRoles(c) }
+func (rcvr *API) PutGroupRole(c *gin.Context)           { rcvr.role.PutGroupRole(c) }
 
 // Attestation delegation
 func (rcvr *API) Capabilities(c *gin.Context) { rcvr.attestation.Capabilities(c) }
 func (rcvr *API) Attestations(c *gin.Context) { rcvr.attestation.Attestations(c) }
+
+// Provisioning delegation
+func (rcvr *API) PlanProvisioning(c *gin.Context)  { rcvr.provisioning.PlanProvisioning(c) }
+func (rcvr *API) ApplyProvisioning(c *gin.Context) { rcvr.provisioning.ApplyProvisioning(c) }
 
 func auth(c *gin.Context) (model.AuthContext, bool) {
 	a, ok := share.Auth(c)

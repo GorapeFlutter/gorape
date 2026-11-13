@@ -28,8 +28,10 @@ Each Project maps to exactly one pre-registered Keycloak Realm issuer. A token's
 
 ## Status
 
-- Project/Group multi-tenancy and admin/editor/viewer RBAC
-- PostgreSQL constraints that enforce project boundaries
+- Project/Group multi-tenancy with fine-grained, permission-based authorization
+- Dynamic role resolution from Gorape role bindings plus Keycloak realm roles, client roles, and group paths
+- Declarative Keycloak + Gorape provisioning through the server (`gorape-admin provision plan|apply`)
+- PostgreSQL constraints that enforce project boundaries and protect the last project admin
 - Keycloak JWT signature, issuer, audience, expiry, not-before, scope, JWKS, and rotation validation
 - Redis-backed 256-bit, short-lived, atomic single-use challenges
 - Device registration, revocation, group assignment, public-key proof, and events
@@ -59,6 +61,20 @@ Bootstrap a Project after obtaining the Keycloak user's `sub`:
   --issuer http://localhost:8080/realms/gorape \
   --realm gorape --admin-subject '<keycloak-sub>'
 ```
+
+The admin command calls the Gorape server; it no longer writes PostgreSQL or
+Keycloak directly. The caller must hold a platform administrator token from
+`Application.Server.Platform.Issuer` with one of `platform.admin_roles`.
+
+For declarative Keycloak and Gorape configuration, edit and apply a manifest:
+
+```bash
+.bin/gorape-admin -c etc/admin.yaml provision plan  -f etc/provisioning.example.yaml
+.bin/gorape-admin -c etc/admin.yaml provision apply -f etc/provisioning.example.yaml
+```
+
+The server applies Keycloak through the Admin REST API and Gorape through one
+PostgreSQL transaction. See [docs/architecture/authorization.md](docs/architecture/authorization.md).
 
 Production issuers must use HTTPS. The migration permits plain HTTP only for localhost development issuers.
 

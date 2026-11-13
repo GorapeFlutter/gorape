@@ -9,6 +9,17 @@ Application:
       provider_urls:
         http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
     attestation: {android_trust_anchors: []}
+    platform:
+      issuer: http://localhost:8080/realms/gorape
+      provider_url: http://keycloak:8080/realms/gorape
+      admin_roles: [gorape-platform-admin, admin]
+    keycloak:
+      base_url: http://keycloak:8080
+      auth_realm: master
+      admin_realm: gorape
+      client_id: admin-cli
+      username: admin
+      password: admin
 PostgreSQL: {host: postgres, user: user, pass: password, port: "5432", db: gorape, sslmode: disable}
 Redis: {host: redis, port: 6379, user: default, pass: mysecretpassword, db: 0}
 Logger: {component: gorape, service: gorape, level: INFO, structured: true, output: stdout}

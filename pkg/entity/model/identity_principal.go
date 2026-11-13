@@ -6,13 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
-// IdentityPrincipal はOIDC認証済みのアイデンティティ
-type IdentityPrincipal struct {
+// Principal はOIDC認証済みのアイデンティティ
+type Principal struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	ProjectID   uuid.UUID `gorm:"type:uuid;not null;index" json:"project_id"`
-	OIDCIssuer  string    `gorm:"column:oidc_issuer;not null" json:"oidc_issuer"`
-	OIDCSubject string    `gorm:"column:oidc_subject;not null" json:"oidc_subject"`
+	OIDCIssuer  string    `gorm:"column:issuer;not null" json:"issuer"`
+	OIDCSubject string    `gorm:"column:subject;not null" json:"subject"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-func (IdentityPrincipal) TableName() string { return "identity_principals" }
+func (Principal) TableName() string { return "principals" }

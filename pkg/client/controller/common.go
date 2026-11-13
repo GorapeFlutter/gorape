@@ -35,6 +35,9 @@ func AddAPICommands(root *cobra.Command, m *clientshare.Manager, api *usecase.AP
 
 	dev := NewDevice(api)
 	dev.AddCommands(root)
+
+	prov := NewProvisioning(api)
+	prov.AddCommands(root)
 }
 
 func printCall(fn func() (json.RawMessage, error)) func(*cobra.Command, []string) error {

@@ -77,9 +77,14 @@ paths:
   /v1/projects/{projectId}/groups/{groupId}/devices/{deviceId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}, {$ref: '#/components/parameters/DeviceId'}]
     delete: {summary: Remove device from group, responses: {'204': {description: Removed}}}
+  /v1/projects/{projectId}/permissions:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get:
+      summary: Resolve the caller's effective project permissions
+      responses: {'200': {description: Permissions, content: {application/json: {schema: {type: object, properties: {permissions: {type: array, items: {type: string}}, roles: {type: array, items: {type: string}}}}}}}}
   /v1/projects/{projectId}/roles:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
-    get: {summary: List project role bindings, responses: {'200': {description: Bindings}}}
+    get: {summary: List project role definitions and bindings, responses: {'200': {description: Definitions and bindings}}}
     post:
       summary: Create or replace project role binding
       requestBody: {$ref: '#/components/requestBodies/Role'}
@@ -87,6 +92,16 @@ paths:
   /v1/projects/{projectId}/roles/{bindingId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/BindingId'}]
     delete: {summary: Delete project role binding, responses: {'204': {description: Deleted}}}
+  /v1/projects/{projectId}/role-definitions:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get: {summary: List role definitions, responses: {'200': {description: Definitions}}}
+  /v1/projects/{projectId}/role-definitions/{key}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {name: key, in: path, required: true, schema: {type: string}}]
+    put:
+      summary: Create or replace a role definition (role:manage)
+      requestBody: {$ref: '#/components/requestBodies/RoleDefinition'}
+      responses: {'200': {description: Definition}}
+    delete: {summary: Delete an unused non-builtin role definition (role:manage), responses: {'204': {description: Deleted}}}
   /v1/projects/{projectId}/groups/{groupId}/roles:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
     get: {summary: List group role bindings, responses: {'200': {description: Bindings}}}
@@ -103,6 +118,16 @@ paths:
   /v1/projects/{projectId}/devices/{deviceId}/attestation:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     get: {summary: List device attestation records, responses: {'200': {description: Records}}}
+  /v1/platform/provisioning/plan:
+    post:
+      summary: Plan a Keycloak + Gorape provisioning manifest (platform admin)
+      requestBody: {$ref: '#/components/requestBodies/Provisioning'}
+      responses: {'200': {description: Planned actions}, '403': {description: Not a platform admin}, '503': {description: Provisioning disabled}}
+  /v1/platform/provisioning/apply:
+    post:
+      summary: Apply a Keycloak + Gorape provisioning manifest (platform admin)
+      requestBody: {$ref: '#/components/requestBodies/Provisioning'}
+      responses: {'200': {description: Applied actions}, '403': {description: Not a platform admin}, '503': {description: Provisioning disabled}}
 components:
   securitySchemes:
     bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
@@ -114,10 +139,24 @@ components:
   requestBodies:
     Role:
       required: true
-      content: {application/json: {schema: {type: object, required: [oidc_subject, role], properties: {oidc_subject: {type: string}, role: {type: string, enum: [admin, editor, viewer]}}}}}
+      content: {application/json: {schema: {type: object, required: [subject, role], properties: {subject: {type: string}, role: {type: string, description: Project role definition key such as admin, editor, viewer, or a provisioned custom key}}}}}
+    RoleDefinition:
+      required: true
+      content: {application/json: {schema: {type: object, required: [permissions], properties: {name: {type: string}, permissions: {type: array, items: {type: string}, description: 'Supports * and prefix wildcards such as device:*'}, keycloak_role: {type: string, description: 'Defaults to gorape-<key>'}}}}}
+    Provisioning:
+      required: true
+      content: {application/json: {schema: {$ref: '#/components/schemas/ProvisioningManifest'}}}
   schemas:
+    ProvisioningManifest:
+      type: object
+      required: [apiVersion, kind]
+      properties:
+        apiVersion: {type: string, enum: [gorape/v1]}
+        kind: {type: string, enum: [Provisioning]}
+        keycloak: {type: object, description: 'Realm, roles, groups, clients, protocol mappers and Authorization Services resources/scopes/policies/permissions'}
+        gorape: {type: object, description: 'Project, role definitions, groups and role bindings'}
     Platform: {type: string, enum: [android, windows, ios, macos]}
-    Project: {type: object, required: [id, slug, name, oidc_issuer], properties: {id: {type: string, format: uuid}, slug: {type: string}, name: {type: string}, oidc_issuer: {type: string, format: uri}}}
+    Project: {type: object, required: [id, slug, name, issuer], properties: {id: {type: string, format: uuid}, slug: {type: string}, name: {type: string}, issuer: {type: string, format: uri}}}
     GroupInput: {type: object, required: [slug, name], properties: {slug: {type: string, pattern: '^[a-z0-9-]+$'}, name: {type: string}}}
     Challenge: {type: object, required: [challenge_id, challenge, expires_at], properties: {challenge_id: {type: string, format: uuid}, challenge: {type: string, description: Base64url random bytes}, expires_at: {type: string, format: date-time}}}
     RegistrationVerify:

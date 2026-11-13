@@ -17,6 +17,7 @@ type Device interface {
 	VerifyRegistration(ctx context.Context, a model.AuthContext, q request.RegistrationVerify) (model.Device, error)
 	ProofChallenge(ctx context.Context, a model.AuthContext, d uuid.UUID) (repository.Challenge, error)
 	VerifyProof(ctx context.Context, a model.AuthContext, d uuid.UUID, q request.ProofVerify) error
+	AuthorizeDevice(ctx context.Context, a model.AuthContext, d uuid.UUID, permission model.Permission) error
 }
 
 type deviceUsecase struct {
@@ -31,14 +32,14 @@ func NewDevice(store *repository.Store, challenges repository.ChallengeStore, ve
 }
 
 func (rcvr *deviceUsecase) RegistrationChallenge(ctx context.Context, a model.AuthContext, platform string) (repository.Challenge, error) {
-	if e := rcvr.projectUC.RequireProject(ctx, a, model.RoleEditor); e != nil {
+	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionDeviceRegister); e != nil {
 		return repository.Challenge{}, e
 	}
 	return rcvr.challenges.Create(ctx, a.Project.ID, a.Claims.Subject, "registration:"+platform, uuid.Nil)
 }
 
 func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthContext, q request.RegistrationVerify) (model.Device, error) {
-	if e := rcvr.projectUC.RequireProject(ctx, a, model.RoleEditor); e != nil {
+	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionDeviceRegister); e != nil {
 		return model.Device{}, e
 	}
 	ch, e := rcvr.challenges.Consume(ctx, q.ChallengeID)
@@ -61,7 +62,7 @@ func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthC
 	}
 	d := model.Device{ProjectID: a.Project.ID, OwnerPrincipalID: a.Principal.ID, Platform: q.Platform, DisplayName: q.DisplayName}
 	k := model.DeviceKey{PublicKey: block.Bytes, KeyIdentifier: q.KeyIdentifier, Algorithm: q.Algorithm}
-	att := model.AttestationRecord{AttestationType: result.Type, SecurityLevel: result.SecurityLevel, VerificationStatus: result.Status, VerifierVersion: result.VerifierVersion}
+	att := model.Attestation{AttestationType: result.Type, SecurityLevel: result.SecurityLevel, VerificationStatus: result.Status, VerifierVersion: result.VerifierVersion}
 	e = rcvr.store.RegisterDevice(ctx, &d, &k, &att, a.Principal.ID)
 	return d, e
 }
@@ -74,10 +75,8 @@ func (rcvr *deviceUsecase) ProofChallenge(ctx context.Context, a model.AuthConte
 	if dev.Status != "active" {
 		return repository.Challenge{}, ErrForbidden
 	}
-	if dev.OwnerPrincipalID != a.Principal.ID {
-		if e = rcvr.projectUC.RequireProject(ctx, a, model.RoleEditor); e != nil {
-			return repository.Challenge{}, e
-		}
+	if e := rcvr.AuthorizeDevice(ctx, a, d, model.PermissionDeviceVerify); e != nil {
+		return repository.Challenge{}, e
 	}
 	return rcvr.challenges.Create(ctx, a.Project.ID, a.Claims.Subject, "proof", d)
 }
@@ -94,10 +93,8 @@ func (rcvr *deviceUsecase) VerifyProof(ctx context.Context, a model.AuthContext,
 	if e != nil || dev.Status != "active" {
 		return ErrForbidden
 	}
-	if dev.OwnerPrincipalID != a.Principal.ID {
-		if e = rcvr.projectUC.RequireProject(ctx, a, model.RoleEditor); e != nil {
-			return e
-		}
+	if e := rcvr.AuthorizeDevice(ctx, a, d, model.PermissionDeviceVerify); e != nil {
+		return e
 	}
 	key, e := rcvr.store.DeviceKey(ctx, a.Project.ID, d)
 	if e != nil {
@@ -107,4 +104,39 @@ func (rcvr *deviceUsecase) VerifyProof(ctx context.Context, a model.AuthContext,
 		return e
 	}
 	return rcvr.store.MarkDeviceVerified(ctx, a.Project.ID, d, a.Principal.ID)
+}
+
+// AuthorizeDevice checks the owner bypass plus project-scoped and group-scoped
+// permissions. A device owner may always read and prove possession of their own
+// device; revocation still requires an explicit device:revoke permission.
+func (rcvr *deviceUsecase) AuthorizeDevice(ctx context.Context, a model.AuthContext, d uuid.UUID, permission model.Permission) error {
+	dev, e := rcvr.store.Device(ctx, a.Project.ID, d)
+	if e != nil {
+		return e
+	}
+	if dev.OwnerPrincipalID == a.Principal.ID &&
+		(permission == model.PermissionDeviceRead || permission == model.PermissionDeviceVerify || permission == model.PermissionAttestationRead) {
+		return nil
+	}
+	set, _, e := rcvr.projectUC.EffectivePermissions(ctx, a, nil)
+	if e != nil {
+		return ErrForbidden
+	}
+	if set.Allows(permission) {
+		return nil
+	}
+	groups, e := rcvr.store.DeviceGroupIDs(ctx, a.Project.ID, d)
+	if e != nil {
+		return e
+	}
+	for _, group := range groups {
+		set, _, e := rcvr.projectUC.EffectivePermissions(ctx, a, &group)
+		if e != nil {
+			continue
+		}
+		if set.Allows(permission) {
+			return nil
+		}
+	}
+	return ErrForbidden
 }

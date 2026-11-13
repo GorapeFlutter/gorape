@@ -47,27 +47,33 @@ func NewStore(db *gorm.DB) *Store {
 func (rcvr *Store) DB() *gorm.DB { return rcvr.db }
 
 // Project methods
-func (rcvr *Store) Project(ctx context.Context, id uuid.UUID) (model.ProjectDomain, error) {
+func (rcvr *Store) Project(ctx context.Context, id uuid.UUID) (model.Project, error) {
 	return rcvr.project.Project(ctx, id)
 }
-func (rcvr *Store) ProjectByIssuer(ctx context.Context, issuer string) (model.ProjectDomain, error) {
+func (rcvr *Store) ProjectByIssuer(ctx context.Context, issuer string) (model.Project, error) {
 	return rcvr.project.ProjectByIssuer(ctx, issuer)
 }
-func (rcvr *Store) Projects(ctx context.Context, principal uuid.UUID) ([]model.ProjectDomain, error) {
+func (rcvr *Store) ProjectBySlug(ctx context.Context, slug string) (model.Project, error) {
+	return rcvr.project.ProjectBySlug(ctx, slug)
+}
+func (rcvr *Store) PutProject(ctx context.Context, v *model.Project) error {
+	return rcvr.project.PutProject(ctx, v)
+}
+func (rcvr *Store) Projects(ctx context.Context, principal uuid.UUID) ([]model.Project, error) {
 	return rcvr.project.Projects(ctx, principal)
 }
 
 // Group methods
-func (rcvr *Store) Groups(ctx context.Context, project uuid.UUID) ([]model.GroupDomain, error) {
+func (rcvr *Store) Groups(ctx context.Context, project uuid.UUID) ([]model.Group, error) {
 	return rcvr.group.Groups(ctx, project)
 }
-func (rcvr *Store) Group(ctx context.Context, project, id uuid.UUID) (model.GroupDomain, error) {
+func (rcvr *Store) Group(ctx context.Context, project, id uuid.UUID) (model.Group, error) {
 	return rcvr.group.Group(ctx, project, id)
 }
-func (rcvr *Store) CreateGroup(ctx context.Context, v *model.GroupDomain) error {
+func (rcvr *Store) CreateGroup(ctx context.Context, v *model.Group) error {
 	return rcvr.group.CreateGroup(ctx, v)
 }
-func (rcvr *Store) UpdateGroup(ctx context.Context, v *model.GroupDomain) error {
+func (rcvr *Store) UpdateGroup(ctx context.Context, v *model.Group) error {
 	return rcvr.group.UpdateGroup(ctx, v)
 }
 func (rcvr *Store) DeleteGroup(ctx context.Context, project, id uuid.UUID) error {
@@ -84,7 +90,7 @@ func (rcvr *Store) Device(ctx context.Context, project, id uuid.UUID) (model.Dev
 func (rcvr *Store) DeviceKey(ctx context.Context, project, device uuid.UUID) (model.DeviceKey, error) {
 	return rcvr.device.DeviceKey(ctx, project, device)
 }
-func (rcvr *Store) RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.AttestationRecord, actor uuid.UUID) error {
+func (rcvr *Store) RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.Attestation, actor uuid.UUID) error {
 	return rcvr.device.RegisterDevice(ctx, d, k, a, actor)
 }
 func (rcvr *Store) RevokeDevice(ctx context.Context, project, id, actor uuid.UUID) error {
@@ -102,49 +108,52 @@ func (rcvr *Store) BindDevice(ctx context.Context, project, group, device uuid.U
 func (rcvr *Store) UnbindDevice(ctx context.Context, project, group, device uuid.UUID) error {
 	return rcvr.device.UnbindDevice(ctx, project, group, device)
 }
+func (rcvr *Store) DeviceGroupIDs(ctx context.Context, project, device uuid.UUID) ([]uuid.UUID, error) {
+	return rcvr.device.DeviceGroupIDs(ctx, project, device)
+}
 
-// Role methods
-func (rcvr *Store) ProjectRole(ctx context.Context, project, principal uuid.UUID) (model.Role, error) {
-	return rcvr.role.ProjectRole(ctx, project, principal)
+// Role / permission methods
+func (rcvr *Store) RoleDefinition(ctx context.Context, project uuid.UUID, key string) (model.RoleDefinition, error) {
+	return rcvr.role.RoleDefinition(ctx, project, key)
 }
-func (rcvr *Store) GroupRole(ctx context.Context, project, group, principal uuid.UUID) (model.Role, error) {
-	return rcvr.role.GroupRole(ctx, project, group, principal)
+func (rcvr *Store) RoleDefinitions(ctx context.Context, project uuid.UUID) ([]model.RoleDefinition, error) {
+	return rcvr.role.RoleDefinitions(ctx, project)
 }
-func (rcvr *Store) ProjectRoles(ctx context.Context, project uuid.UUID) ([]model.ProjectRoleBinding, error) {
-	return rcvr.role.ProjectRoles(ctx, project)
+func (rcvr *Store) PutRoleDefinition(ctx context.Context, v *model.RoleDefinition) error {
+	return rcvr.role.PutRoleDefinition(ctx, v)
 }
-func (rcvr *Store) GroupRoles(ctx context.Context, project, group uuid.UUID) ([]model.GroupRoleBinding, error) {
-	return rcvr.role.GroupRoles(ctx, project, group)
+func (rcvr *Store) DeleteRoleDefinition(ctx context.Context, project uuid.UUID, key string) error {
+	return rcvr.role.DeleteRoleDefinition(ctx, project, key)
 }
-func (rcvr *Store) ProjectRoleBinding(ctx context.Context, project, binding uuid.UUID) (model.ProjectRoleBinding, error) {
-	return rcvr.role.ProjectRoleBinding(ctx, project, binding)
+func (rcvr *Store) RoleBindings(ctx context.Context, project, principal uuid.UUID) ([]model.RoleBinding, error) {
+	return rcvr.role.RoleBindings(ctx, project, principal)
 }
-func (rcvr *Store) GroupRoleBinding(ctx context.Context, project, group, binding uuid.UUID) (model.GroupRoleBinding, error) {
-	return rcvr.role.GroupRoleBinding(ctx, project, group, binding)
+func (rcvr *Store) ProjectRoleBindings(ctx context.Context, project uuid.UUID) ([]model.RoleBinding, error) {
+	return rcvr.role.ProjectRoleBindings(ctx, project)
 }
-func (rcvr *Store) PutProjectRole(ctx context.Context, v *model.ProjectRoleBinding) error {
-	return rcvr.role.PutProjectRole(ctx, v)
+func (rcvr *Store) GroupRoleBindings(ctx context.Context, project, group uuid.UUID) ([]model.RoleBinding, error) {
+	return rcvr.role.GroupRoleBindings(ctx, project, group)
 }
-func (rcvr *Store) PutGroupRole(ctx context.Context, v *model.GroupRoleBinding) error {
-	return rcvr.role.PutGroupRole(ctx, v)
+func (rcvr *Store) RoleBinding(ctx context.Context, project, binding uuid.UUID) (model.RoleBinding, error) {
+	return rcvr.role.RoleBinding(ctx, project, binding)
 }
-func (rcvr *Store) DeleteProjectRole(ctx context.Context, project, binding uuid.UUID) error {
-	return rcvr.role.DeleteProjectRole(ctx, project, binding)
+func (rcvr *Store) PutRoleBinding(ctx context.Context, v *model.RoleBinding) error {
+	return rcvr.role.PutRoleBinding(ctx, v)
 }
-func (rcvr *Store) DeleteGroupRole(ctx context.Context, project, group, binding uuid.UUID) error {
-	return rcvr.role.DeleteGroupRole(ctx, project, group, binding)
+func (rcvr *Store) DeleteRoleBinding(ctx context.Context, project, binding uuid.UUID) error {
+	return rcvr.role.DeleteRoleBinding(ctx, project, binding)
 }
 
 // Principal methods
-func (rcvr *Store) EnsurePrincipal(ctx context.Context, project model.ProjectDomain, issuer, subject string) (model.IdentityPrincipal, error) {
+func (rcvr *Store) EnsurePrincipal(ctx context.Context, project model.Project, issuer, subject string) (model.Principal, error) {
 	return rcvr.principal.EnsurePrincipal(ctx, project, issuer, subject)
 }
-func (rcvr *Store) PrincipalBySubject(ctx context.Context, project uuid.UUID, subject string) (model.IdentityPrincipal, error) {
+func (rcvr *Store) PrincipalBySubject(ctx context.Context, project uuid.UUID, subject string) (model.Principal, error) {
 	return rcvr.principal.PrincipalBySubject(ctx, project, subject)
 }
 
 // AttestationStore methods
-func (rcvr *Store) Attestations(ctx context.Context, project, device uuid.UUID) ([]model.AttestationRecord, error) {
+func (rcvr *Store) Attestations(ctx context.Context, project, device uuid.UUID) ([]model.Attestation, error) {
 	return rcvr.attestation.Attestations(ctx, project, device)
 }
 

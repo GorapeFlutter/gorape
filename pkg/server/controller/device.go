@@ -31,7 +31,7 @@ func (rcvr *deviceController) ListDevices(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionDeviceRead); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -58,7 +58,7 @@ func (rcvr *deviceController) GetDevice(c *gin.Context) {
 		return
 	}
 	if v.OwnerPrincipalID != x.Principal.ID {
-		if e = rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+		if e = rcvr.service.RequireProject(c, x, model.PermissionDeviceRead); e != nil {
 			fail(c, 403, e)
 			return
 		}
@@ -75,7 +75,7 @@ func (rcvr *deviceController) RevokeDevice(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleEditor); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionDeviceRevoke); e != nil {
 		fail(c, 403, e)
 		return
 	}

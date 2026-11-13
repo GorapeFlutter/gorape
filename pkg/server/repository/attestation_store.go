@@ -9,7 +9,7 @@ import (
 )
 
 type AttestationStore interface {
-	Attestations(ctx context.Context, project, device uuid.UUID) ([]model.AttestationRecord, error)
+	Attestations(ctx context.Context, project, device uuid.UUID) ([]model.Attestation, error)
 }
 
 type attestationRepository struct {
@@ -20,8 +20,8 @@ func NewAttestationStore(db *gorm.DB) AttestationStore {
 	return &attestationRepository{db: db}
 }
 
-func (rcvr *attestationRepository) Attestations(ctx context.Context, project, device uuid.UUID) ([]model.AttestationRecord, error) {
-	var v []model.AttestationRecord
-	e := rcvr.db.WithContext(ctx).Table("attestation_records a").Joins("JOIN device_keys k ON k.project_id=a.project_id AND k.id=a.device_key_id").Where("a.project_id=? AND k.device_id=?", project, device).Order("a.verified_at DESC").Scan(&v).Error
+func (rcvr *attestationRepository) Attestations(ctx context.Context, project, device uuid.UUID) ([]model.Attestation, error) {
+	var v []model.Attestation
+	e := rcvr.db.WithContext(ctx).Table("attestations a").Joins("JOIN device_keys k ON k.project_id=a.project_id AND k.id=a.key_id").Where("a.project_id=? AND k.device_id=?", project, device).Order("a.verified_at DESC").Scan(&v).Error
 	return v, e
 }

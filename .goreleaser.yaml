@@ -1,0 +1,29 @@
+version: 2
+project_name: gorape
+builds:
+  - id: server
+    main: ./cmd/server
+    binary: gorape-server
+    env: [CGO_ENABLED=0]
+    goos: [linux]
+    goarch: [amd64, arm64]
+  - id: admin
+    main: ./cmd/client/admin
+    binary: gorape-admin
+    env: [CGO_ENABLED=0]
+    goos: [linux]
+    goarch: [amd64, arm64]
+nfpm:
+  - package_name: gorape
+    vendor: Gorape
+    homepage: https://github.com/Gorapeflutter/gorape
+    maintainer: Gorape Maintainers
+    description: Gorape security trust authority
+    formats: [deb, rpm]
+    contents:
+      - src: ./etc/server.yaml
+        dst: /etc/gorape/server.yaml
+release:
+  github:
+    owner: Gorapeflutter
+    name: gorape

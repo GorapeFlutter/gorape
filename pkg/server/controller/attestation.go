@@ -24,7 +24,7 @@ func (rcvr *attestationController) Capabilities(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionAttestationRead); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -46,7 +46,7 @@ func (rcvr *attestationController) Attestations(c *gin.Context) {
 		return
 	}
 	if dev.OwnerPrincipalID != x.Principal.ID {
-		if e = rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+		if e = rcvr.service.RequireProject(c, x, model.PermissionAttestationRead); e != nil {
 			fail(c, 403, e)
 			return
 		}

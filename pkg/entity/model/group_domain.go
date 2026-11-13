@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// GroupDomain はビュー/クエリ用のグループ集約ルート
-type GroupDomain struct {
+// Group はビュー/クエリ用のグループ集約ルート
+type Group struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	ProjectID uuid.UUID `gorm:"type:uuid;not null;index" json:"project_id"`
 	Slug      string    `gorm:"not null" json:"slug"`
@@ -17,4 +17,4 @@ type GroupDomain struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (GroupDomain) TableName() string { return "group_domains" }
+func (Group) TableName() string { return "groups" }

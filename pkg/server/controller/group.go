@@ -28,7 +28,7 @@ func (rcvr *groupController) ListGroups(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionGroupRead); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -66,7 +66,7 @@ func (rcvr *groupController) GetGroup(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireGroup(c, x, g, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireGroup(c, x, g, model.PermissionGroupRead); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -87,7 +87,7 @@ func (rcvr *groupController) UpdateGroup(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleAdmin); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionGroupManage); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -98,7 +98,7 @@ func (rcvr *groupController) UpdateGroup(c *gin.Context) {
 	if q.Status == "" {
 		q.Status = "active"
 	}
-	v := model.GroupDomain{ID: g, ProjectID: x.Project.ID, Name: q.Name, Status: q.Status}
+	v := model.Group{ID: g, ProjectID: x.Project.ID, Name: q.Name, Status: q.Status}
 	if e := rcvr.service.Store.UpdateGroup(c, &v); e != nil {
 		fail(c, 400, e)
 		return
@@ -115,7 +115,7 @@ func (rcvr *groupController) DeleteGroup(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireProject(c, x, model.RoleAdmin); e != nil {
+	if e := rcvr.service.RequireProject(c, x, model.PermissionGroupManage); e != nil {
 		fail(c, 403, e)
 		return
 	}

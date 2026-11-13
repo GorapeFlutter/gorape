@@ -6,6 +6,22 @@ Application:
     redis: {challenge_prefix: "gorape:challenge:"}
     oidc: {audience: gorape-api, required_scopes: [openid], provider_urls: {}}
     attestation: {android_trust_anchors: []}
+    # Platform administrators can provision projects, roles and Keycloak
+    # resources through /v1/platform/provisioning/{plan,apply}.
+    platform:
+      issuer: https://keycloak.example.com/realms/gorape
+      provider_url: ""
+      admin_roles: [gorape-platform-admin]
+    # Optional. When base_url is set, the server can apply Keycloak manifests.
+    # Prefer a confidential client with realm-management roles in production.
+    keycloak:
+      base_url: ""
+      auth_realm: master
+      admin_realm: gorape
+      client_id: gorape-provisioner
+      client_secret: ""
+      username: ""
+      password: ""
 PostgreSQL: {host: localhost, user: user, pass: password, port: "5432", db: gorape, sslmode: disable}
 Redis: {host: localhost, port: 6379, user: default, pass: mysecretpassword, db: 0}
 Logger: {component: gorape, service: gorape, level: INFO, structured: true, output: stdout}

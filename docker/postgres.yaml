@@ -13,6 +13,7 @@ services:
     volumes:
       - ./scripts/data/postgres/000-keycloak.sql:/docker-entrypoint-initdb.d/000-keycloak.sql:ro
       - ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/001-gorape.sql:ro
+      - ./migrations/000002_dynamic_authorization.up.sql:/docker-entrypoint-initdb.d/002-gorape-authorization.sql:ro
     ports:
       - "5432:5432"
     networks:

@@ -1,0 +1,5 @@
+FROM rockylinux:9-minimal
+RUN microdnf install -y ca-certificates && microdnf clean all
+COPY *.rpm /tmp/
+RUN rpm -ivh /tmp/*.rpm && rm -f /tmp/*.rpm
+ENTRYPOINT ["/usr/bin/gorape-server"]

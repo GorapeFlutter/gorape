@@ -17,7 +17,7 @@ import (
 
 type countingValidator struct{ calls int }
 
-func (v *countingValidator) Validate(context.Context, model.ProjectDomain, string) (model.AccessTokenClaims, error) {
+func (v *countingValidator) Validate(context.Context, model.Project, string) (model.AccessTokenClaims, error) {
 	v.calls++
 	return model.AccessTokenClaims{}, errors.New("unexpected validation")
 }
@@ -27,7 +27,7 @@ func TestUnknownIssuerDoesNotReachOIDCDiscovery(t *testing.T) {
 	require.NoError(t, err)
 	db, err := gorm.Open(postgres.New(postgres.Config{Conn: sqlDB}), &gorm.Config{DisableAutomaticPing: true})
 	require.NoError(t, err)
-	mock.ExpectQuery(`SELECT .*project_domains.*oidc_issuer`).WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	mock.ExpectQuery(`SELECT .*projects.*issuer`).WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	v := &countingValidator{}
 	s := usecase.NewService(repository.NewStore(db), v, nil, nil)
 	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"iss":"https://evil.example/realm"}`))

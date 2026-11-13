@@ -43,10 +43,18 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	if err != nil {
 		log.Fatalf("attestation initialization failed: %v", err)
 	}
+	platformCfg := conf.YamlConfig.Application.Server.Platform
+	providerURLs := conf.YamlConfig.Application.Server.OIDC.ProviderURLs
+	if platformCfg.Issuer != "" && platformCfg.ProviderURL != "" {
+		if providerURLs == nil {
+			providerURLs = map[string]string{}
+		}
+		providerURLs[platformCfg.Issuer] = platformCfg.ProviderURL
+	}
 	tokens := repository.NewOIDCValidator(
 		conf.YamlConfig.Application.Server.OIDC.Audience,
 		conf.YamlConfig.Application.Server.OIDC.RequiredScopes,
-		conf.YamlConfig.Application.Server.OIDC.ProviderURLs,
+		providerURLs,
 	)
 	challenges := repository.NewRedisChallengeStore(
 		rdb,
@@ -59,6 +67,18 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 
 	// -- Usecases --
 	service := usecase.NewService(store, tokens, challenges, registry)
+	if platformCfg.Issuer != "" {
+		service.ConfigurePlatform(platformCfg.Issuer, platformCfg.AdminRoles)
+	}
+	var keycloak repository.KeycloakProvisioner
+	if conf.YamlConfig.Application.Server.Keycloak.BaseURL != "" {
+		admin, e := repository.NewKeycloakAdmin(conf.YamlConfig.Application.Server.Keycloak)
+		if e != nil {
+			log.Fatalf("Keycloak provisioning initialization failed: %v", e)
+		}
+		keycloak = admin
+	}
+	service.ConfigureProvisioning(repository.NewProvisioning(conf.DBConnection), keycloak)
 
 	// -- Controllers --
 	projectCtrl := controller.NewProject(service)
@@ -67,6 +87,7 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	assignmentCtrl := controller.NewAssignment(service)
 	roleCtrl := controller.NewRole(service)
 	attestationCtrl := controller.NewAttestation(service)
+	provisioningCtrl := controller.NewProvisioning(service)
 
 	// ============================================================
 	// Router setup
@@ -95,12 +116,19 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	projects.Use(share.Authenticate(service, true))
 	projects.GET("", projectCtrl.ListProjects)
 
+	// ============ Platform Administration (platform issuer token) ============
+	platform := v1.Group("/platform")
+	platform.Use(share.AuthenticatePlatform(service))
+	platform.POST("/provisioning/plan", provisioningCtrl.PlanProvisioning)
+	platform.POST("/provisioning/apply", provisioningCtrl.ApplyProvisioning)
+
 	// ============ Project Scoped APIs ============
 	p := v1.Group("/projects/:projectId")
 	p.Use(share.Authenticate(service, false))
 
 	// Projects
 	p.GET("", projectCtrl.GetProject)
+	p.GET("/permissions", roleCtrl.Permissions)
 
 	// Groups
 	p.GET("/groups", groupCtrl.ListGroups)
@@ -126,10 +154,12 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	// Roles
 	p.GET("/roles", roleCtrl.ProjectRoles)
 	p.POST("/roles", roleCtrl.PutProjectRole)
-	p.DELETE("/roles/:bindingId", roleCtrl.DeleteProjectRole)
+	p.DELETE("/roles/:bindingId", roleCtrl.DeleteBinding)
 	p.GET("/groups/:groupId/roles", roleCtrl.GroupRoles)
 	p.POST("/groups/:groupId/roles", roleCtrl.PutGroupRole)
-	p.DELETE("/groups/:groupId/roles/:bindingId", roleCtrl.DeleteGroupRole)
+	p.GET("/role-definitions", roleCtrl.ProjectRoleDefinitions)
+	p.PUT("/role-definitions/:key", roleCtrl.PutRoleDefinition)
+	p.DELETE("/role-definitions/:key", roleCtrl.DeleteRoleDefinition)
 
 	// Attestation
 	p.GET("/attestation/capabilities", attestationCtrl.Capabilities)

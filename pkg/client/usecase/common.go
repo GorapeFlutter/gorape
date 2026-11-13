@@ -4,27 +4,31 @@ import (
 	"encoding/json"
 
 	"github.com/Gorapeflutter/gorape/pkg/client/repository"
+	"github.com/Gorapeflutter/gorape/pkg/entity/provisioning"
 )
 
 type APIInterface interface {
 	Project
 	Group
 	Device
+	Provisioning
 }
 
 type API struct {
-	repo    *repository.API
-	project Project
-	group   Group
-	device  Device
+	repo         *repository.API
+	project      Project
+	group        Group
+	device       Device
+	provisioning Provisioning
 }
 
 func NewAPI(r *repository.API) *API {
 	return &API{
-		repo:    r,
-		project: NewProject(r),
-		group:   NewGroup(r),
-		device:  NewDevice(r),
+		repo:         r,
+		project:      NewProject(r),
+		group:        NewGroup(r),
+		device:       NewDevice(r),
+		provisioning: NewProvisioning(r),
 	}
 }
 
@@ -47,4 +51,15 @@ func (rcvr *API) ListDevices(project string) (json.RawMessage, error) {
 }
 func (rcvr *API) RevokeDevice(project, device string) (json.RawMessage, error) {
 	return rcvr.device.RevokeDevice(project, device)
+}
+
+// Provisioning delegation
+func (rcvr *API) PlanProvisioning(m provisioning.Manifest) (json.RawMessage, error) {
+	return rcvr.provisioning.PlanProvisioning(m)
+}
+func (rcvr *API) ApplyProvisioning(m provisioning.Manifest) (json.RawMessage, error) {
+	return rcvr.provisioning.ApplyProvisioning(m)
+}
+func (rcvr *API) BootstrapProject(slug, name, issuer, realm, subject string) (json.RawMessage, error) {
+	return rcvr.provisioning.BootstrapProject(slug, name, issuer, realm, subject)
 }

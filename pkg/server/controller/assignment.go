@@ -31,7 +31,7 @@ func (rcvr *assignmentController) GroupDevices(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireGroup(c, x, g, model.RoleViewer); e != nil {
+	if e := rcvr.service.RequireGroup(c, x, g, model.PermissionGroupRead); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -52,7 +52,7 @@ func (rcvr *assignmentController) BindDevice(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireGroup(c, x, g, model.RoleEditor); e != nil {
+	if e := rcvr.service.RequireGroup(c, x, g, model.PermissionGroupBind); e != nil {
 		fail(c, 403, e)
 		return
 	}
@@ -89,7 +89,7 @@ func (rcvr *assignmentController) UnbindDevice(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if e := rcvr.service.RequireGroup(c, x, g, model.RoleEditor); e != nil {
+	if e := rcvr.service.RequireGroup(c, x, g, model.PermissionGroupBind); e != nil {
 		fail(c, 403, e)
 		return
 	}

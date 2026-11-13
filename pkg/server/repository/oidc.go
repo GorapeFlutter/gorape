@@ -14,7 +14,7 @@ import (
 )
 
 type TokenValidator interface {
-	Validate(context.Context, model.ProjectDomain, string) (model.AccessTokenClaims, error)
+	Validate(context.Context, model.Project, string) (model.AccessTokenClaims, error)
 }
 type OIDCValidator struct {
 	audience     string
@@ -27,7 +27,7 @@ type OIDCValidator struct {
 func NewOIDCValidator(audience string, scopes []string, providerURLs map[string]string) *OIDCValidator {
 	return &OIDCValidator{audience: audience, scopes: scopes, providerURLs: providerURLs, verifiers: map[string]*gooidc.IDTokenVerifier{}}
 }
-func (rcvr *OIDCValidator) Validate(ctx context.Context, p model.ProjectDomain, raw string) (model.AccessTokenClaims, error) {
+func (rcvr *OIDCValidator) Validate(ctx context.Context, p model.Project, raw string) (model.AccessTokenClaims, error) {
 	if p.OIDCIssuer == "" || p.Status != "active" {
 		return model.AccessTokenClaims{}, errors.New("inactive or invalid project issuer")
 	}
