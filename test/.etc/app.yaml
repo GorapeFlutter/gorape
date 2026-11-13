@@ -1,0 +1,51 @@
+Application:
+  Common: {}
+  Server:
+    port: 8000
+    admin:
+      emails:
+        - "admin@gf.local"
+    jwt_secret: "CHANGE_THIS_JWT_SECRET_IN_PRODUCTION"
+    log_level: "debug"
+    jwt:
+      key: "secret"
+    tmp:
+      letters: ""
+      length: 6
+  Client:
+    HomePath: "test/.cmn"
+    ServerEndpoint: "http://localhost:8000"
+    credentials:
+      email: "test1@gf.local"
+      password: "TestPassword123!"
+    HomeDir: "test/.cmn"
+    TemplatesDir: "pkg/client/repository/templates/"
+  Mail:
+    host: "localhost"
+    port: 587
+    username: "noreply@gf.local"
+    password: "NoReplyPassword123!"
+    from: "noreply@gf.local"
+    use_tls: true
+
+MySQL:
+  host: "localhost"
+  user: "user"
+  pass: "password"
+  port: 3306
+  db: "cmn-core"
+
+Redis:
+  host: "localhost"
+  port: 6379
+  user: "default"
+  pass: "mysecretpassword"
+  db: 0
+
+Logger:
+  component: "cmn-core"
+  service: "cmn-server"
+  level: "DEBUG"
+  structured: false
+  enable_caller: true
+  output: "stdout"

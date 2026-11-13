@@ -1,0 +1,24 @@
+# グループ内ロール初期ポリシー例 (必要に応じて動的変更)
+# owner: すべて管理
+p, owner, group_info, read
+p, owner, group_info, write
+p, owner, member, read
+p, owner, member, write
+p, owner, secret, read
+p, owner, secret, write
+
+# maintainer: メンバー管理と閲覧/更新、secret は read のみ
+g, maintainer, member
+p, maintainer, group_info, read
+p, maintainer, group_info, write
+p, maintainer, member, read
+p, maintainer, member, write
+p, maintainer, secret, read
+
+# member: 基本閲覧
+g, member, viewer
+p, member, group_info, read
+p, member, member, read
+
+# viewer: 最小閲覧
+p, viewer, group_info, read

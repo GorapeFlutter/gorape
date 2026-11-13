@@ -1,0 +1,16 @@
+p, admin, users, read
+p, admin, users, write
+p, admin, groups, read
+p, admin, groups, write
+p, admin, members, read
+p, admin, members, write
+p, admin, roles, read
+p, admin, roles, write
+
+# internal user (authenticated standard user)
+p, user, users, read
+p, user, groups, read
+p, user, groups, write
+p, user, members, read
+p, user, members, write
+p, user, roles, read
