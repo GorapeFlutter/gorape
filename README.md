@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/banner.png" alt="Gorape" width="100%">
+</p>
+
 # Gorape
 
 Open Device Trust & Attestation Backend written in Go.
