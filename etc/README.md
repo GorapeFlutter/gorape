@@ -1,0 +1,112 @@
+# Configuration Files Guide
+
+## File Structure
+
+| File | Purpose |
+|------|---------|
+| `server.yaml.example` | Server configuration template (local development) |
+| `server.yaml` | Local server configuration (not tracked by Git) |
+| `server.yaml.docker` | Server configuration used by the `server` container |
+| `admin.yaml.example` / `app.yaml.example` | CLI client configuration templates |
+| `keycloak/gorape-realm.json` | Keycloak realm import (realm, client, users, groups) |
+| `README.md` | This guide |
+
+## Setup
+
+```bash
+cp etc/server.yaml.example etc/server.yaml
+cp etc/admin.yaml.example  etc/admin.yaml
+cp etc/app.yaml.example    etc/app.yaml
+make dev-up
+make build
+```
+
+`make bootstrap` performs the copies above and leaves existing files untouched.
+
+## Keycloak
+
+`etc/keycloak/gorape-realm.json` is imported automatically by the Keycloak container
+(`start-dev --import-realm`).
+
+- Realm: `gorape` (`http://localhost:8080/realms/gorape`)
+- Public client: `gorape-client` (Authorization Code + PKCE, `S256`)
+- API audience: `gorape-api`
+- Redirect URI: `http://127.0.0.1:8400/callback`
+- Development users:
+  - `gorape-admin` / `ChangeMe123!` (temporary; change on first login)
+  - `user01` ... `user50` / `Password123!`
+- Development groups: `group001` ... `group100`
+- User emails use the `@gf.local` domain
+
+Keycloak groups and realm roles are identity-provider data only. Gorape authorization is
+derived from its own PostgreSQL project/group role bindings (`admin` / `editor` / `viewer`),
+never from Keycloak realm roles or groups.
+
+To rebuild the realm after editing the JSON, recreate the containers and their volumes:
+
+```bash
+make dev-down
+make dev-up
+```
+
+## Server Configuration
+
+`etc/server.yaml` (local) and `etc/server.yaml.docker` (container) use these sections:
+
+```yaml
+Application:
+  Server:
+    port: 8000
+    oidc:
+      audience: gorape-api
+      required_scopes: [openid]
+      provider_urls: {}
+    attestation:
+      android_trust_anchors: []
+PostgreSQL:
+  host: localhost
+  db: gorape
+Redis:
+  host: localhost
+  db: 0
+```
+
+`provider_urls` maps a token issuer to the discovery URL used inside the container.
+The Docker configuration maps:
+
+```yaml
+http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
+```
+
+## CLI Client Configuration
+
+`admin.yaml` and `app.yaml` point at the same realm and public client:
+
+```yaml
+Application:
+  Client:
+    ServerEndpoint: http://localhost:8000
+    oidc:
+      issuer_url: http://localhost:8080/realms/gorape
+      client_id: gorape-client
+      redirect_url: http://127.0.0.1:8400/callback
+      scopes: [openid, profile]
+```
+
+Authenticate once per profile:
+
+```bash
+.bin/gorape-admin -c etc/admin.yaml login
+.bin/gorape-client -c etc/app.yaml login
+```
+
+Access tokens are stored under `etc/.gorape/client/<profile>/access_token` with mode `0600`.
+Alternatively, set `GORAPE_ACCESS_TOKEN` for non-interactive use.
+Gorape does not support email/password or client-secret login for CLI clients.
+
+## Security Notes
+
+- `etc/*.yaml` is ignored by Git; never commit real secrets or tokens.
+- The bundled passwords and `sslRequired: none` are for local development only.
+- Production issuers must use HTTPS; plain HTTP is accepted only for localhost.
+- Change `gorape-admin`'s temporary password on first login.

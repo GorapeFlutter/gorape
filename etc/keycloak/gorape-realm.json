@@ -1,0 +1,5938 @@
+{
+  "id": "gorape",
+  "realm": "gorape",
+  "displayName": "Gorape",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "accessTokenLifespan": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator"
+      },
+      {
+        "name": "app",
+        "description": "Application user"
+      },
+      {
+        "name": "anonymous",
+        "description": "Unauthenticated / public access"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "gorape-client",
+      "name": "Gorape native client",
+      "description": "Public OIDC client for gorape CLI and native apps (Authorization Code + PKCE)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1:8400/callback"
+      ],
+      "webOrigins": [
+        "http://127.0.0.1:8400"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "gorape-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "gorape-api",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "name": "group001",
+      "path": "/group001",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group002",
+      "path": "/group002",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group003",
+      "path": "/group003",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group004",
+      "path": "/group004",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group005",
+      "path": "/group005",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group006",
+      "path": "/group006",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group007",
+      "path": "/group007",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group008",
+      "path": "/group008",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group009",
+      "path": "/group009",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group010",
+      "path": "/group010",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group011",
+      "path": "/group011",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group012",
+      "path": "/group012",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group013",
+      "path": "/group013",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group014",
+      "path": "/group014",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group015",
+      "path": "/group015",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group016",
+      "path": "/group016",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group017",
+      "path": "/group017",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group018",
+      "path": "/group018",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group019",
+      "path": "/group019",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group020",
+      "path": "/group020",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group021",
+      "path": "/group021",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group022",
+      "path": "/group022",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group023",
+      "path": "/group023",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group024",
+      "path": "/group024",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group025",
+      "path": "/group025",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group026",
+      "path": "/group026",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group027",
+      "path": "/group027",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group028",
+      "path": "/group028",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group029",
+      "path": "/group029",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group030",
+      "path": "/group030",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group031",
+      "path": "/group031",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group032",
+      "path": "/group032",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group033",
+      "path": "/group033",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group034",
+      "path": "/group034",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group035",
+      "path": "/group035",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group036",
+      "path": "/group036",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group037",
+      "path": "/group037",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group038",
+      "path": "/group038",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group039",
+      "path": "/group039",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group040",
+      "path": "/group040",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group041",
+      "path": "/group041",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group042",
+      "path": "/group042",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group043",
+      "path": "/group043",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group044",
+      "path": "/group044",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group045",
+      "path": "/group045",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group046",
+      "path": "/group046",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group047",
+      "path": "/group047",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group048",
+      "path": "/group048",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group049",
+      "path": "/group049",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group050",
+      "path": "/group050",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group051",
+      "path": "/group051",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group052",
+      "path": "/group052",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group053",
+      "path": "/group053",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group054",
+      "path": "/group054",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group055",
+      "path": "/group055",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group056",
+      "path": "/group056",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group057",
+      "path": "/group057",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group058",
+      "path": "/group058",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group059",
+      "path": "/group059",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group060",
+      "path": "/group060",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group061",
+      "path": "/group061",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group062",
+      "path": "/group062",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group063",
+      "path": "/group063",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group064",
+      "path": "/group064",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group065",
+      "path": "/group065",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group066",
+      "path": "/group066",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group067",
+      "path": "/group067",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group068",
+      "path": "/group068",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group069",
+      "path": "/group069",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group070",
+      "path": "/group070",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group071",
+      "path": "/group071",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group072",
+      "path": "/group072",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group073",
+      "path": "/group073",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group074",
+      "path": "/group074",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group075",
+      "path": "/group075",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group076",
+      "path": "/group076",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group077",
+      "path": "/group077",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group078",
+      "path": "/group078",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group079",
+      "path": "/group079",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group080",
+      "path": "/group080",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group081",
+      "path": "/group081",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group082",
+      "path": "/group082",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group083",
+      "path": "/group083",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group084",
+      "path": "/group084",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group085",
+      "path": "/group085",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group086",
+      "path": "/group086",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group087",
+      "path": "/group087",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group088",
+      "path": "/group088",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group089",
+      "path": "/group089",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group090",
+      "path": "/group090",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group091",
+      "path": "/group091",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group092",
+      "path": "/group092",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group093",
+      "path": "/group093",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group094",
+      "path": "/group094",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group095",
+      "path": "/group095",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group096",
+      "path": "/group096",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group097",
+      "path": "/group097",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group098",
+      "path": "/group098",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group099",
+      "path": "/group099",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    },
+    {
+      "name": "group100",
+      "path": "/group100",
+      "attributes": {},
+      "realmRoles": [],
+      "clientRoles": {},
+      "subGroups": []
+    }
+  ],
+  "users": [
+    {
+      "username": "gorape-admin",
+      "email": "admin@gf.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Gorape",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ChangeMe123!",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ],
+      "groups": [],
+      "attributes": {}
+    },
+    {
+      "username": "user01",
+      "email": "user01@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "01",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "owner"
+        ],
+        "gorape_group_group006_role": [
+          "owner"
+        ],
+        "gorape_group_group011_role": [
+          "owner"
+        ],
+        "gorape_group_group016_role": [
+          "owner"
+        ],
+        "gorape_group_group021_role": [
+          "owner"
+        ],
+        "gorape_group_group026_role": [
+          "owner"
+        ],
+        "gorape_group_group031_role": [
+          "owner"
+        ],
+        "gorape_group_group036_role": [
+          "owner"
+        ],
+        "gorape_group_group041_role": [
+          "owner"
+        ],
+        "gorape_group_group046_role": [
+          "owner"
+        ],
+        "gorape_group_group051_role": [
+          "owner"
+        ],
+        "gorape_group_group056_role": [
+          "owner"
+        ],
+        "gorape_group_group061_role": [
+          "owner"
+        ],
+        "gorape_group_group066_role": [
+          "owner"
+        ],
+        "gorape_group_group071_role": [
+          "owner"
+        ],
+        "gorape_group_group076_role": [
+          "owner"
+        ],
+        "gorape_group_group081_role": [
+          "owner"
+        ],
+        "gorape_group_group086_role": [
+          "owner"
+        ],
+        "gorape_group_group091_role": [
+          "owner"
+        ],
+        "gorape_group_group096_role": [
+          "owner"
+        ]
+      }
+    },
+    {
+      "username": "user02",
+      "email": "user02@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "02",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "editor"
+        ],
+        "gorape_group_group006_role": [
+          "editor"
+        ],
+        "gorape_group_group011_role": [
+          "editor"
+        ],
+        "gorape_group_group016_role": [
+          "editor"
+        ],
+        "gorape_group_group021_role": [
+          "editor"
+        ],
+        "gorape_group_group026_role": [
+          "editor"
+        ],
+        "gorape_group_group031_role": [
+          "editor"
+        ],
+        "gorape_group_group036_role": [
+          "editor"
+        ],
+        "gorape_group_group041_role": [
+          "editor"
+        ],
+        "gorape_group_group046_role": [
+          "editor"
+        ],
+        "gorape_group_group051_role": [
+          "editor"
+        ],
+        "gorape_group_group056_role": [
+          "editor"
+        ],
+        "gorape_group_group061_role": [
+          "editor"
+        ],
+        "gorape_group_group066_role": [
+          "editor"
+        ],
+        "gorape_group_group071_role": [
+          "editor"
+        ],
+        "gorape_group_group076_role": [
+          "editor"
+        ],
+        "gorape_group_group081_role": [
+          "editor"
+        ],
+        "gorape_group_group086_role": [
+          "editor"
+        ],
+        "gorape_group_group091_role": [
+          "editor"
+        ],
+        "gorape_group_group096_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user03",
+      "email": "user03@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "03",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "editor"
+        ],
+        "gorape_group_group006_role": [
+          "editor"
+        ],
+        "gorape_group_group011_role": [
+          "editor"
+        ],
+        "gorape_group_group016_role": [
+          "editor"
+        ],
+        "gorape_group_group021_role": [
+          "editor"
+        ],
+        "gorape_group_group026_role": [
+          "editor"
+        ],
+        "gorape_group_group031_role": [
+          "editor"
+        ],
+        "gorape_group_group036_role": [
+          "editor"
+        ],
+        "gorape_group_group041_role": [
+          "editor"
+        ],
+        "gorape_group_group046_role": [
+          "editor"
+        ],
+        "gorape_group_group051_role": [
+          "editor"
+        ],
+        "gorape_group_group056_role": [
+          "editor"
+        ],
+        "gorape_group_group061_role": [
+          "editor"
+        ],
+        "gorape_group_group066_role": [
+          "editor"
+        ],
+        "gorape_group_group071_role": [
+          "editor"
+        ],
+        "gorape_group_group076_role": [
+          "editor"
+        ],
+        "gorape_group_group081_role": [
+          "editor"
+        ],
+        "gorape_group_group086_role": [
+          "editor"
+        ],
+        "gorape_group_group091_role": [
+          "editor"
+        ],
+        "gorape_group_group096_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user04",
+      "email": "user04@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "04",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user05",
+      "email": "user05@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "05",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user06",
+      "email": "user06@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "06",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user07",
+      "email": "user07@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "07",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user08",
+      "email": "user08@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "08",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user09",
+      "email": "user09@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "09",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user10",
+      "email": "user10@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "10",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group001",
+        "/group006",
+        "/group011",
+        "/group016",
+        "/group021",
+        "/group026",
+        "/group031",
+        "/group036",
+        "/group041",
+        "/group046",
+        "/group051",
+        "/group056",
+        "/group061",
+        "/group066",
+        "/group071",
+        "/group076",
+        "/group081",
+        "/group086",
+        "/group091",
+        "/group096"
+      ],
+      "attributes": {
+        "gorape_group_group001_role": [
+          "viewer"
+        ],
+        "gorape_group_group006_role": [
+          "viewer"
+        ],
+        "gorape_group_group011_role": [
+          "viewer"
+        ],
+        "gorape_group_group016_role": [
+          "viewer"
+        ],
+        "gorape_group_group021_role": [
+          "viewer"
+        ],
+        "gorape_group_group026_role": [
+          "viewer"
+        ],
+        "gorape_group_group031_role": [
+          "viewer"
+        ],
+        "gorape_group_group036_role": [
+          "viewer"
+        ],
+        "gorape_group_group041_role": [
+          "viewer"
+        ],
+        "gorape_group_group046_role": [
+          "viewer"
+        ],
+        "gorape_group_group051_role": [
+          "viewer"
+        ],
+        "gorape_group_group056_role": [
+          "viewer"
+        ],
+        "gorape_group_group061_role": [
+          "viewer"
+        ],
+        "gorape_group_group066_role": [
+          "viewer"
+        ],
+        "gorape_group_group071_role": [
+          "viewer"
+        ],
+        "gorape_group_group076_role": [
+          "viewer"
+        ],
+        "gorape_group_group081_role": [
+          "viewer"
+        ],
+        "gorape_group_group086_role": [
+          "viewer"
+        ],
+        "gorape_group_group091_role": [
+          "viewer"
+        ],
+        "gorape_group_group096_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user11",
+      "email": "user11@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "11",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "owner"
+        ],
+        "gorape_group_group007_role": [
+          "owner"
+        ],
+        "gorape_group_group012_role": [
+          "owner"
+        ],
+        "gorape_group_group017_role": [
+          "owner"
+        ],
+        "gorape_group_group022_role": [
+          "owner"
+        ],
+        "gorape_group_group027_role": [
+          "owner"
+        ],
+        "gorape_group_group032_role": [
+          "owner"
+        ],
+        "gorape_group_group037_role": [
+          "owner"
+        ],
+        "gorape_group_group042_role": [
+          "owner"
+        ],
+        "gorape_group_group047_role": [
+          "owner"
+        ],
+        "gorape_group_group052_role": [
+          "owner"
+        ],
+        "gorape_group_group057_role": [
+          "owner"
+        ],
+        "gorape_group_group062_role": [
+          "owner"
+        ],
+        "gorape_group_group067_role": [
+          "owner"
+        ],
+        "gorape_group_group072_role": [
+          "owner"
+        ],
+        "gorape_group_group077_role": [
+          "owner"
+        ],
+        "gorape_group_group082_role": [
+          "owner"
+        ],
+        "gorape_group_group087_role": [
+          "owner"
+        ],
+        "gorape_group_group092_role": [
+          "owner"
+        ],
+        "gorape_group_group097_role": [
+          "owner"
+        ]
+      }
+    },
+    {
+      "username": "user12",
+      "email": "user12@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "12",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "editor"
+        ],
+        "gorape_group_group007_role": [
+          "editor"
+        ],
+        "gorape_group_group012_role": [
+          "editor"
+        ],
+        "gorape_group_group017_role": [
+          "editor"
+        ],
+        "gorape_group_group022_role": [
+          "editor"
+        ],
+        "gorape_group_group027_role": [
+          "editor"
+        ],
+        "gorape_group_group032_role": [
+          "editor"
+        ],
+        "gorape_group_group037_role": [
+          "editor"
+        ],
+        "gorape_group_group042_role": [
+          "editor"
+        ],
+        "gorape_group_group047_role": [
+          "editor"
+        ],
+        "gorape_group_group052_role": [
+          "editor"
+        ],
+        "gorape_group_group057_role": [
+          "editor"
+        ],
+        "gorape_group_group062_role": [
+          "editor"
+        ],
+        "gorape_group_group067_role": [
+          "editor"
+        ],
+        "gorape_group_group072_role": [
+          "editor"
+        ],
+        "gorape_group_group077_role": [
+          "editor"
+        ],
+        "gorape_group_group082_role": [
+          "editor"
+        ],
+        "gorape_group_group087_role": [
+          "editor"
+        ],
+        "gorape_group_group092_role": [
+          "editor"
+        ],
+        "gorape_group_group097_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user13",
+      "email": "user13@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "13",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "editor"
+        ],
+        "gorape_group_group007_role": [
+          "editor"
+        ],
+        "gorape_group_group012_role": [
+          "editor"
+        ],
+        "gorape_group_group017_role": [
+          "editor"
+        ],
+        "gorape_group_group022_role": [
+          "editor"
+        ],
+        "gorape_group_group027_role": [
+          "editor"
+        ],
+        "gorape_group_group032_role": [
+          "editor"
+        ],
+        "gorape_group_group037_role": [
+          "editor"
+        ],
+        "gorape_group_group042_role": [
+          "editor"
+        ],
+        "gorape_group_group047_role": [
+          "editor"
+        ],
+        "gorape_group_group052_role": [
+          "editor"
+        ],
+        "gorape_group_group057_role": [
+          "editor"
+        ],
+        "gorape_group_group062_role": [
+          "editor"
+        ],
+        "gorape_group_group067_role": [
+          "editor"
+        ],
+        "gorape_group_group072_role": [
+          "editor"
+        ],
+        "gorape_group_group077_role": [
+          "editor"
+        ],
+        "gorape_group_group082_role": [
+          "editor"
+        ],
+        "gorape_group_group087_role": [
+          "editor"
+        ],
+        "gorape_group_group092_role": [
+          "editor"
+        ],
+        "gorape_group_group097_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user14",
+      "email": "user14@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "14",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user15",
+      "email": "user15@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "15",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user16",
+      "email": "user16@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "16",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user17",
+      "email": "user17@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "17",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user18",
+      "email": "user18@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "18",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user19",
+      "email": "user19@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "19",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user20",
+      "email": "user20@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "20",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group002",
+        "/group007",
+        "/group012",
+        "/group017",
+        "/group022",
+        "/group027",
+        "/group032",
+        "/group037",
+        "/group042",
+        "/group047",
+        "/group052",
+        "/group057",
+        "/group062",
+        "/group067",
+        "/group072",
+        "/group077",
+        "/group082",
+        "/group087",
+        "/group092",
+        "/group097"
+      ],
+      "attributes": {
+        "gorape_group_group002_role": [
+          "viewer"
+        ],
+        "gorape_group_group007_role": [
+          "viewer"
+        ],
+        "gorape_group_group012_role": [
+          "viewer"
+        ],
+        "gorape_group_group017_role": [
+          "viewer"
+        ],
+        "gorape_group_group022_role": [
+          "viewer"
+        ],
+        "gorape_group_group027_role": [
+          "viewer"
+        ],
+        "gorape_group_group032_role": [
+          "viewer"
+        ],
+        "gorape_group_group037_role": [
+          "viewer"
+        ],
+        "gorape_group_group042_role": [
+          "viewer"
+        ],
+        "gorape_group_group047_role": [
+          "viewer"
+        ],
+        "gorape_group_group052_role": [
+          "viewer"
+        ],
+        "gorape_group_group057_role": [
+          "viewer"
+        ],
+        "gorape_group_group062_role": [
+          "viewer"
+        ],
+        "gorape_group_group067_role": [
+          "viewer"
+        ],
+        "gorape_group_group072_role": [
+          "viewer"
+        ],
+        "gorape_group_group077_role": [
+          "viewer"
+        ],
+        "gorape_group_group082_role": [
+          "viewer"
+        ],
+        "gorape_group_group087_role": [
+          "viewer"
+        ],
+        "gorape_group_group092_role": [
+          "viewer"
+        ],
+        "gorape_group_group097_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user21",
+      "email": "user21@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "21",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "owner"
+        ],
+        "gorape_group_group008_role": [
+          "owner"
+        ],
+        "gorape_group_group013_role": [
+          "owner"
+        ],
+        "gorape_group_group018_role": [
+          "owner"
+        ],
+        "gorape_group_group023_role": [
+          "owner"
+        ],
+        "gorape_group_group028_role": [
+          "owner"
+        ],
+        "gorape_group_group033_role": [
+          "owner"
+        ],
+        "gorape_group_group038_role": [
+          "owner"
+        ],
+        "gorape_group_group043_role": [
+          "owner"
+        ],
+        "gorape_group_group048_role": [
+          "owner"
+        ],
+        "gorape_group_group053_role": [
+          "owner"
+        ],
+        "gorape_group_group058_role": [
+          "owner"
+        ],
+        "gorape_group_group063_role": [
+          "owner"
+        ],
+        "gorape_group_group068_role": [
+          "owner"
+        ],
+        "gorape_group_group073_role": [
+          "owner"
+        ],
+        "gorape_group_group078_role": [
+          "owner"
+        ],
+        "gorape_group_group083_role": [
+          "owner"
+        ],
+        "gorape_group_group088_role": [
+          "owner"
+        ],
+        "gorape_group_group093_role": [
+          "owner"
+        ],
+        "gorape_group_group098_role": [
+          "owner"
+        ]
+      }
+    },
+    {
+      "username": "user22",
+      "email": "user22@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "22",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "editor"
+        ],
+        "gorape_group_group008_role": [
+          "editor"
+        ],
+        "gorape_group_group013_role": [
+          "editor"
+        ],
+        "gorape_group_group018_role": [
+          "editor"
+        ],
+        "gorape_group_group023_role": [
+          "editor"
+        ],
+        "gorape_group_group028_role": [
+          "editor"
+        ],
+        "gorape_group_group033_role": [
+          "editor"
+        ],
+        "gorape_group_group038_role": [
+          "editor"
+        ],
+        "gorape_group_group043_role": [
+          "editor"
+        ],
+        "gorape_group_group048_role": [
+          "editor"
+        ],
+        "gorape_group_group053_role": [
+          "editor"
+        ],
+        "gorape_group_group058_role": [
+          "editor"
+        ],
+        "gorape_group_group063_role": [
+          "editor"
+        ],
+        "gorape_group_group068_role": [
+          "editor"
+        ],
+        "gorape_group_group073_role": [
+          "editor"
+        ],
+        "gorape_group_group078_role": [
+          "editor"
+        ],
+        "gorape_group_group083_role": [
+          "editor"
+        ],
+        "gorape_group_group088_role": [
+          "editor"
+        ],
+        "gorape_group_group093_role": [
+          "editor"
+        ],
+        "gorape_group_group098_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user23",
+      "email": "user23@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "23",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "editor"
+        ],
+        "gorape_group_group008_role": [
+          "editor"
+        ],
+        "gorape_group_group013_role": [
+          "editor"
+        ],
+        "gorape_group_group018_role": [
+          "editor"
+        ],
+        "gorape_group_group023_role": [
+          "editor"
+        ],
+        "gorape_group_group028_role": [
+          "editor"
+        ],
+        "gorape_group_group033_role": [
+          "editor"
+        ],
+        "gorape_group_group038_role": [
+          "editor"
+        ],
+        "gorape_group_group043_role": [
+          "editor"
+        ],
+        "gorape_group_group048_role": [
+          "editor"
+        ],
+        "gorape_group_group053_role": [
+          "editor"
+        ],
+        "gorape_group_group058_role": [
+          "editor"
+        ],
+        "gorape_group_group063_role": [
+          "editor"
+        ],
+        "gorape_group_group068_role": [
+          "editor"
+        ],
+        "gorape_group_group073_role": [
+          "editor"
+        ],
+        "gorape_group_group078_role": [
+          "editor"
+        ],
+        "gorape_group_group083_role": [
+          "editor"
+        ],
+        "gorape_group_group088_role": [
+          "editor"
+        ],
+        "gorape_group_group093_role": [
+          "editor"
+        ],
+        "gorape_group_group098_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user24",
+      "email": "user24@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "24",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user25",
+      "email": "user25@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "25",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user26",
+      "email": "user26@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "26",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user27",
+      "email": "user27@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "27",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user28",
+      "email": "user28@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "28",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user29",
+      "email": "user29@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "29",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user30",
+      "email": "user30@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "30",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group003",
+        "/group008",
+        "/group013",
+        "/group018",
+        "/group023",
+        "/group028",
+        "/group033",
+        "/group038",
+        "/group043",
+        "/group048",
+        "/group053",
+        "/group058",
+        "/group063",
+        "/group068",
+        "/group073",
+        "/group078",
+        "/group083",
+        "/group088",
+        "/group093",
+        "/group098"
+      ],
+      "attributes": {
+        "gorape_group_group003_role": [
+          "viewer"
+        ],
+        "gorape_group_group008_role": [
+          "viewer"
+        ],
+        "gorape_group_group013_role": [
+          "viewer"
+        ],
+        "gorape_group_group018_role": [
+          "viewer"
+        ],
+        "gorape_group_group023_role": [
+          "viewer"
+        ],
+        "gorape_group_group028_role": [
+          "viewer"
+        ],
+        "gorape_group_group033_role": [
+          "viewer"
+        ],
+        "gorape_group_group038_role": [
+          "viewer"
+        ],
+        "gorape_group_group043_role": [
+          "viewer"
+        ],
+        "gorape_group_group048_role": [
+          "viewer"
+        ],
+        "gorape_group_group053_role": [
+          "viewer"
+        ],
+        "gorape_group_group058_role": [
+          "viewer"
+        ],
+        "gorape_group_group063_role": [
+          "viewer"
+        ],
+        "gorape_group_group068_role": [
+          "viewer"
+        ],
+        "gorape_group_group073_role": [
+          "viewer"
+        ],
+        "gorape_group_group078_role": [
+          "viewer"
+        ],
+        "gorape_group_group083_role": [
+          "viewer"
+        ],
+        "gorape_group_group088_role": [
+          "viewer"
+        ],
+        "gorape_group_group093_role": [
+          "viewer"
+        ],
+        "gorape_group_group098_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user31",
+      "email": "user31@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "31",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "owner"
+        ],
+        "gorape_group_group009_role": [
+          "owner"
+        ],
+        "gorape_group_group014_role": [
+          "owner"
+        ],
+        "gorape_group_group019_role": [
+          "owner"
+        ],
+        "gorape_group_group024_role": [
+          "owner"
+        ],
+        "gorape_group_group029_role": [
+          "owner"
+        ],
+        "gorape_group_group034_role": [
+          "owner"
+        ],
+        "gorape_group_group039_role": [
+          "owner"
+        ],
+        "gorape_group_group044_role": [
+          "owner"
+        ],
+        "gorape_group_group049_role": [
+          "owner"
+        ],
+        "gorape_group_group054_role": [
+          "owner"
+        ],
+        "gorape_group_group059_role": [
+          "owner"
+        ],
+        "gorape_group_group064_role": [
+          "owner"
+        ],
+        "gorape_group_group069_role": [
+          "owner"
+        ],
+        "gorape_group_group074_role": [
+          "owner"
+        ],
+        "gorape_group_group079_role": [
+          "owner"
+        ],
+        "gorape_group_group084_role": [
+          "owner"
+        ],
+        "gorape_group_group089_role": [
+          "owner"
+        ],
+        "gorape_group_group094_role": [
+          "owner"
+        ],
+        "gorape_group_group099_role": [
+          "owner"
+        ]
+      }
+    },
+    {
+      "username": "user32",
+      "email": "user32@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "32",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "editor"
+        ],
+        "gorape_group_group009_role": [
+          "editor"
+        ],
+        "gorape_group_group014_role": [
+          "editor"
+        ],
+        "gorape_group_group019_role": [
+          "editor"
+        ],
+        "gorape_group_group024_role": [
+          "editor"
+        ],
+        "gorape_group_group029_role": [
+          "editor"
+        ],
+        "gorape_group_group034_role": [
+          "editor"
+        ],
+        "gorape_group_group039_role": [
+          "editor"
+        ],
+        "gorape_group_group044_role": [
+          "editor"
+        ],
+        "gorape_group_group049_role": [
+          "editor"
+        ],
+        "gorape_group_group054_role": [
+          "editor"
+        ],
+        "gorape_group_group059_role": [
+          "editor"
+        ],
+        "gorape_group_group064_role": [
+          "editor"
+        ],
+        "gorape_group_group069_role": [
+          "editor"
+        ],
+        "gorape_group_group074_role": [
+          "editor"
+        ],
+        "gorape_group_group079_role": [
+          "editor"
+        ],
+        "gorape_group_group084_role": [
+          "editor"
+        ],
+        "gorape_group_group089_role": [
+          "editor"
+        ],
+        "gorape_group_group094_role": [
+          "editor"
+        ],
+        "gorape_group_group099_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user33",
+      "email": "user33@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "33",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "editor"
+        ],
+        "gorape_group_group009_role": [
+          "editor"
+        ],
+        "gorape_group_group014_role": [
+          "editor"
+        ],
+        "gorape_group_group019_role": [
+          "editor"
+        ],
+        "gorape_group_group024_role": [
+          "editor"
+        ],
+        "gorape_group_group029_role": [
+          "editor"
+        ],
+        "gorape_group_group034_role": [
+          "editor"
+        ],
+        "gorape_group_group039_role": [
+          "editor"
+        ],
+        "gorape_group_group044_role": [
+          "editor"
+        ],
+        "gorape_group_group049_role": [
+          "editor"
+        ],
+        "gorape_group_group054_role": [
+          "editor"
+        ],
+        "gorape_group_group059_role": [
+          "editor"
+        ],
+        "gorape_group_group064_role": [
+          "editor"
+        ],
+        "gorape_group_group069_role": [
+          "editor"
+        ],
+        "gorape_group_group074_role": [
+          "editor"
+        ],
+        "gorape_group_group079_role": [
+          "editor"
+        ],
+        "gorape_group_group084_role": [
+          "editor"
+        ],
+        "gorape_group_group089_role": [
+          "editor"
+        ],
+        "gorape_group_group094_role": [
+          "editor"
+        ],
+        "gorape_group_group099_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user34",
+      "email": "user34@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "34",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user35",
+      "email": "user35@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "35",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user36",
+      "email": "user36@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "36",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user37",
+      "email": "user37@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "37",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user38",
+      "email": "user38@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "38",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user39",
+      "email": "user39@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "39",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user40",
+      "email": "user40@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "40",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group004",
+        "/group009",
+        "/group014",
+        "/group019",
+        "/group024",
+        "/group029",
+        "/group034",
+        "/group039",
+        "/group044",
+        "/group049",
+        "/group054",
+        "/group059",
+        "/group064",
+        "/group069",
+        "/group074",
+        "/group079",
+        "/group084",
+        "/group089",
+        "/group094",
+        "/group099"
+      ],
+      "attributes": {
+        "gorape_group_group004_role": [
+          "viewer"
+        ],
+        "gorape_group_group009_role": [
+          "viewer"
+        ],
+        "gorape_group_group014_role": [
+          "viewer"
+        ],
+        "gorape_group_group019_role": [
+          "viewer"
+        ],
+        "gorape_group_group024_role": [
+          "viewer"
+        ],
+        "gorape_group_group029_role": [
+          "viewer"
+        ],
+        "gorape_group_group034_role": [
+          "viewer"
+        ],
+        "gorape_group_group039_role": [
+          "viewer"
+        ],
+        "gorape_group_group044_role": [
+          "viewer"
+        ],
+        "gorape_group_group049_role": [
+          "viewer"
+        ],
+        "gorape_group_group054_role": [
+          "viewer"
+        ],
+        "gorape_group_group059_role": [
+          "viewer"
+        ],
+        "gorape_group_group064_role": [
+          "viewer"
+        ],
+        "gorape_group_group069_role": [
+          "viewer"
+        ],
+        "gorape_group_group074_role": [
+          "viewer"
+        ],
+        "gorape_group_group079_role": [
+          "viewer"
+        ],
+        "gorape_group_group084_role": [
+          "viewer"
+        ],
+        "gorape_group_group089_role": [
+          "viewer"
+        ],
+        "gorape_group_group094_role": [
+          "viewer"
+        ],
+        "gorape_group_group099_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user41",
+      "email": "user41@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "41",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "owner"
+        ],
+        "gorape_group_group010_role": [
+          "owner"
+        ],
+        "gorape_group_group015_role": [
+          "owner"
+        ],
+        "gorape_group_group020_role": [
+          "owner"
+        ],
+        "gorape_group_group025_role": [
+          "owner"
+        ],
+        "gorape_group_group030_role": [
+          "owner"
+        ],
+        "gorape_group_group035_role": [
+          "owner"
+        ],
+        "gorape_group_group040_role": [
+          "owner"
+        ],
+        "gorape_group_group045_role": [
+          "owner"
+        ],
+        "gorape_group_group050_role": [
+          "owner"
+        ],
+        "gorape_group_group055_role": [
+          "owner"
+        ],
+        "gorape_group_group060_role": [
+          "owner"
+        ],
+        "gorape_group_group065_role": [
+          "owner"
+        ],
+        "gorape_group_group070_role": [
+          "owner"
+        ],
+        "gorape_group_group075_role": [
+          "owner"
+        ],
+        "gorape_group_group080_role": [
+          "owner"
+        ],
+        "gorape_group_group085_role": [
+          "owner"
+        ],
+        "gorape_group_group090_role": [
+          "owner"
+        ],
+        "gorape_group_group095_role": [
+          "owner"
+        ],
+        "gorape_group_group100_role": [
+          "owner"
+        ]
+      }
+    },
+    {
+      "username": "user42",
+      "email": "user42@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "42",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "editor"
+        ],
+        "gorape_group_group010_role": [
+          "editor"
+        ],
+        "gorape_group_group015_role": [
+          "editor"
+        ],
+        "gorape_group_group020_role": [
+          "editor"
+        ],
+        "gorape_group_group025_role": [
+          "editor"
+        ],
+        "gorape_group_group030_role": [
+          "editor"
+        ],
+        "gorape_group_group035_role": [
+          "editor"
+        ],
+        "gorape_group_group040_role": [
+          "editor"
+        ],
+        "gorape_group_group045_role": [
+          "editor"
+        ],
+        "gorape_group_group050_role": [
+          "editor"
+        ],
+        "gorape_group_group055_role": [
+          "editor"
+        ],
+        "gorape_group_group060_role": [
+          "editor"
+        ],
+        "gorape_group_group065_role": [
+          "editor"
+        ],
+        "gorape_group_group070_role": [
+          "editor"
+        ],
+        "gorape_group_group075_role": [
+          "editor"
+        ],
+        "gorape_group_group080_role": [
+          "editor"
+        ],
+        "gorape_group_group085_role": [
+          "editor"
+        ],
+        "gorape_group_group090_role": [
+          "editor"
+        ],
+        "gorape_group_group095_role": [
+          "editor"
+        ],
+        "gorape_group_group100_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user43",
+      "email": "user43@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "43",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "editor"
+        ],
+        "gorape_group_group010_role": [
+          "editor"
+        ],
+        "gorape_group_group015_role": [
+          "editor"
+        ],
+        "gorape_group_group020_role": [
+          "editor"
+        ],
+        "gorape_group_group025_role": [
+          "editor"
+        ],
+        "gorape_group_group030_role": [
+          "editor"
+        ],
+        "gorape_group_group035_role": [
+          "editor"
+        ],
+        "gorape_group_group040_role": [
+          "editor"
+        ],
+        "gorape_group_group045_role": [
+          "editor"
+        ],
+        "gorape_group_group050_role": [
+          "editor"
+        ],
+        "gorape_group_group055_role": [
+          "editor"
+        ],
+        "gorape_group_group060_role": [
+          "editor"
+        ],
+        "gorape_group_group065_role": [
+          "editor"
+        ],
+        "gorape_group_group070_role": [
+          "editor"
+        ],
+        "gorape_group_group075_role": [
+          "editor"
+        ],
+        "gorape_group_group080_role": [
+          "editor"
+        ],
+        "gorape_group_group085_role": [
+          "editor"
+        ],
+        "gorape_group_group090_role": [
+          "editor"
+        ],
+        "gorape_group_group095_role": [
+          "editor"
+        ],
+        "gorape_group_group100_role": [
+          "editor"
+        ]
+      }
+    },
+    {
+      "username": "user44",
+      "email": "user44@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "44",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user45",
+      "email": "user45@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "45",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user46",
+      "email": "user46@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "46",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user47",
+      "email": "user47@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "47",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user48",
+      "email": "user48@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "48",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user49",
+      "email": "user49@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "49",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    },
+    {
+      "username": "user50",
+      "email": "user50@gf.local",
+      "enabled": true,
+      "firstName": "User",
+      "lastName": "50",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Password123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app"
+      ],
+      "groups": [
+        "/group005",
+        "/group010",
+        "/group015",
+        "/group020",
+        "/group025",
+        "/group030",
+        "/group035",
+        "/group040",
+        "/group045",
+        "/group050",
+        "/group055",
+        "/group060",
+        "/group065",
+        "/group070",
+        "/group075",
+        "/group080",
+        "/group085",
+        "/group090",
+        "/group095",
+        "/group100"
+      ],
+      "attributes": {
+        "gorape_group_group005_role": [
+          "viewer"
+        ],
+        "gorape_group_group010_role": [
+          "viewer"
+        ],
+        "gorape_group_group015_role": [
+          "viewer"
+        ],
+        "gorape_group_group020_role": [
+          "viewer"
+        ],
+        "gorape_group_group025_role": [
+          "viewer"
+        ],
+        "gorape_group_group030_role": [
+          "viewer"
+        ],
+        "gorape_group_group035_role": [
+          "viewer"
+        ],
+        "gorape_group_group040_role": [
+          "viewer"
+        ],
+        "gorape_group_group045_role": [
+          "viewer"
+        ],
+        "gorape_group_group050_role": [
+          "viewer"
+        ],
+        "gorape_group_group055_role": [
+          "viewer"
+        ],
+        "gorape_group_group060_role": [
+          "viewer"
+        ],
+        "gorape_group_group065_role": [
+          "viewer"
+        ],
+        "gorape_group_group070_role": [
+          "viewer"
+        ],
+        "gorape_group_group075_role": [
+          "viewer"
+        ],
+        "gorape_group_group080_role": [
+          "viewer"
+        ],
+        "gorape_group_group085_role": [
+          "viewer"
+        ],
+        "gorape_group_group090_role": [
+          "viewer"
+        ],
+        "gorape_group_group095_role": [
+          "viewer"
+        ],
+        "gorape_group_group100_role": [
+          "viewer"
+        ]
+      }
+    }
+  ]
+}

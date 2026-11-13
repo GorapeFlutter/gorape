@@ -1,0 +1,11 @@
+Application:
+  Server:
+    port: 8000
+    log_level: info
+    challenge_ttl: 5m
+    redis: {challenge_prefix: "gorape:challenge:"}
+    oidc: {audience: gorape-api, required_scopes: [openid], provider_urls: {}}
+    attestation: {android_trust_anchors: []}
+PostgreSQL: {host: localhost, user: user, pass: password, port: "5432", db: gorape, sslmode: disable}
+Redis: {host: localhost, port: 6379, user: default, pass: mysecretpassword, db: 0}
+Logger: {component: gorape, service: gorape, level: INFO, structured: true, output: stdout}

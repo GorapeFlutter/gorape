@@ -1,0 +1,10 @@
+Application:
+  Client:
+    ServerEndpoint: http://localhost:8000
+    oidc:
+      issuer_url: http://localhost:8080/realms/gorape
+      client_id: gorape-client
+      redirect_url: http://127.0.0.1:8400/callback
+      scopes: [openid, profile]
+PostgreSQL: {host: localhost, user: user, pass: password, port: "5432", db: gorape, sslmode: disable}
+Logger: {component: gorape, service: gorape-admin, level: INFO, structured: false, output: stdout}

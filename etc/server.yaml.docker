@@ -1,0 +1,14 @@
+Application:
+  Server:
+    port: 8000
+    challenge_ttl: 5m
+    redis: {challenge_prefix: "gorape:challenge:"}
+    oidc:
+      audience: gorape-api
+      required_scopes: [openid]
+      provider_urls:
+        http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
+    attestation: {android_trust_anchors: []}
+PostgreSQL: {host: postgres, user: user, pass: password, port: "5432", db: gorape, sslmode: disable}
+Redis: {host: redis, port: 6379, user: default, pass: mysecretpassword, db: 0}
+Logger: {component: gorape, service: gorape, level: INFO, structured: true, output: stdout}
