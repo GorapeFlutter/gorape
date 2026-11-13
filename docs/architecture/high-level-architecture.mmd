@@ -1,0 +1,126 @@
+graph TB
+    subgraph "Client Layer"
+        AdminCLI[Admin CLI]
+        AppCLI[App CLI]
+        AnonymousCLI[Anonymous CLI]
+    end
+
+    subgraph "API Layer"
+        Router[Gin Router]
+        Middleware[Middleware Layer]
+        
+        subgraph "Middleware Components"
+            Auth[JWT Authentication]
+            RBAC[Casbin Authorization]
+            Logger[Request Logger]
+        end
+    end
+
+    subgraph "Controller Layer"
+        PublicCtrl[Public Controllers]
+        InternalCtrl[Internal Controllers]
+        PrivateCtrl[Private Controllers]
+        
+        subgraph "Domain Controllers"
+            UserCtrl[User Controller]
+            GroupCtrl[Group Controller]
+            MemberCtrl[Member Controller]
+            RoleCtrl[Role Controller]
+        end
+    end
+
+    subgraph "Business Logic Layer"
+        UserUsecase[User Usecase]
+        GroupUsecase[Group Usecase]
+        MemberUsecase[Member Usecase]
+        RoleUsecase[Role Usecase]
+    end
+
+    subgraph "Repository Layer"
+        UserRepo[User Repository]
+        GroupRepo[Group Repository]
+        MemberRepo[Member Repository]
+        RoleRepo[Role Repository]
+        CommonRepo[Common Repository]
+        RedisRepo[Redis Repository]
+    end
+
+    subgraph "Data Layer"
+        MySQL[(MySQL/TiDB)]
+        Redis[(Redis Cache)]
+        CasbinPolicies[Casbin Policies]
+        
+        subgraph "Casbin"
+            AuthPolicy[Auth Policy]
+            ResourcePolicy[Resource Policy]
+        end
+    end
+
+    subgraph "Configuration"
+        YAMLConfig[app.yaml]
+        CasbinModels[model.conf]
+    end
+
+    AdminCLI --> Router
+    AppCLI --> Router
+    AnonymousCLI --> Router
+
+    Router --> Middleware
+    Middleware --> Auth
+    Middleware --> RBAC
+    Middleware --> Logger
+
+    Auth --> PublicCtrl
+    Auth --> InternalCtrl
+    Auth --> PrivateCtrl
+
+    PublicCtrl --> UserCtrl
+    InternalCtrl --> UserCtrl
+    InternalCtrl --> GroupCtrl
+    InternalCtrl --> MemberCtrl
+    InternalCtrl --> RoleCtrl
+    PrivateCtrl --> UserCtrl
+    PrivateCtrl --> GroupCtrl
+    PrivateCtrl --> MemberCtrl
+    PrivateCtrl --> RoleCtrl
+
+    UserCtrl --> UserUsecase
+    GroupCtrl --> GroupUsecase
+    MemberCtrl --> MemberUsecase
+    RoleCtrl --> RoleUsecase
+
+    UserUsecase --> UserRepo
+    GroupUsecase --> GroupRepo
+    MemberUsecase --> MemberRepo
+    RoleUsecase --> RoleRepo
+
+    UserRepo --> MySQL
+    GroupRepo --> MySQL
+    MemberRepo --> MySQL
+    RoleRepo --> CasbinPolicies
+    CommonRepo --> Redis
+    RedisRepo --> Redis
+
+    RBAC --> AuthPolicy
+    RBAC --> ResourcePolicy
+    AuthPolicy --> CasbinPolicies
+    ResourcePolicy --> CasbinPolicies
+
+    YAMLConfig -.-> Router
+    CasbinModels -.-> RBAC
+
+    classDef clientStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef apiStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef controllerStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef businessStyle fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef repoStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef dataStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef configStyle fill:#e0f2f1,stroke:#004d40,stroke-width:2px
+
+    class AdminCLI,AppCLI,AnonymousCLI clientStyle
+    class Router,Middleware,Auth,RBAC,Logger apiStyle
+    class PublicCtrl,InternalCtrl,PrivateCtrl,UserCtrl,GroupCtrl,MemberCtrl,RoleCtrl controllerStyle
+    class UserUsecase,GroupUsecase,MemberUsecase,RoleUsecase businessStyle
+    class UserRepo,GroupRepo,MemberRepo,RoleRepo,CommonRepo,RedisRepo repoStyle
+    class MySQL,Redis,CasbinPolicies,AuthPolicy,ResourcePolicy dataStyle
+    class YAMLConfig,CasbinModels configStyle

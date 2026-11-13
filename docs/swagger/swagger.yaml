@@ -1,0 +1,135 @@
+openapi: 3.1.0
+info:
+  title: Gorape API
+  version: 0.1.0
+  description: Open Device Trust & Attestation Backend. Send Keycloak access tokens, never ID tokens.
+servers:
+  - url: https://gorape.example.com
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      security: []
+      summary: Liveness probe
+      responses: {'200': {description: Healthy}}
+  /v1/projects:
+    get:
+      summary: List projects visible to the token subject
+      responses: {'200': {description: Projects, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Project'}}}}}}
+  /v1/projects/{projectId}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get:
+      summary: Get project
+      responses: {'200': {description: Project}}
+  /v1/projects/{projectId}/groups:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get:
+      summary: List groups
+      responses: {'200': {description: Groups}}
+    post:
+      summary: Create group (project admin)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/GroupInput'}}}}
+      responses: {'201': {description: Created}}
+  /v1/projects/{projectId}/groups/{groupId}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
+    get: {summary: Get group, responses: {'200': {description: Group}}}
+    patch:
+      summary: Update group (project admin)
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [name], properties: {name: {type: string}, status: {type: string}}}}}}
+      responses: {'200': {description: Updated}}
+    delete: {summary: Delete group (project admin), responses: {'204': {description: Deleted}}}
+  /v1/projects/{projectId}/devices:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get: {summary: List devices, responses: {'200': {description: Devices}}}
+  /v1/projects/{projectId}/devices/{deviceId}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
+    get: {summary: Get device, responses: {'200': {description: Device}}}
+    delete: {summary: Revoke device (admin/editor), responses: {'204': {description: Revoked}}}
+  /v1/projects/{projectId}/devices/registration/challenge:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    post:
+      summary: Issue single-use registration challenge
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [platform], properties: {platform: {$ref: '#/components/schemas/Platform'}}}}}}
+      responses: {'201': {description: Challenge, content: {application/json: {schema: {$ref: '#/components/schemas/Challenge'}}}}}
+  /v1/projects/{projectId}/devices/registration/verify:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    post:
+      summary: Verify attestation and register a device
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegistrationVerify'}}}}
+      responses: {'201': {description: Registered}, '422': {description: Invalid or unsupported attestation}}
+  /v1/projects/{projectId}/devices/{deviceId}/challenge:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
+    post: {summary: Issue a device key proof challenge, responses: {'201': {description: Challenge}}}
+  /v1/projects/{projectId}/devices/{deviceId}/verify:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
+    post:
+      summary: Verify device key possession
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [challenge_id, signature], properties: {challenge_id: {type: string, format: uuid}, signature: {type: string, description: Base64url signature}}}}}}
+      responses: {'200': {description: Verified}}
+  /v1/projects/{projectId}/groups/{groupId}/devices:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
+    get: {summary: List group devices, responses: {'200': {description: Devices}}}
+    post:
+      summary: Add device to group
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [device_id], properties: {device_id: {type: string, format: uuid}}}}}}
+      responses: {'204': {description: Bound}}
+  /v1/projects/{projectId}/groups/{groupId}/devices/{deviceId}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}, {$ref: '#/components/parameters/DeviceId'}]
+    delete: {summary: Remove device from group, responses: {'204': {description: Removed}}}
+  /v1/projects/{projectId}/roles:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get: {summary: List project role bindings, responses: {'200': {description: Bindings}}}
+    post:
+      summary: Create or replace project role binding
+      requestBody: {$ref: '#/components/requestBodies/Role'}
+      responses: {'204': {description: Bound}}
+  /v1/projects/{projectId}/roles/{bindingId}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/BindingId'}]
+    delete: {summary: Delete project role binding, responses: {'204': {description: Deleted}}}
+  /v1/projects/{projectId}/groups/{groupId}/roles:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
+    get: {summary: List group role bindings, responses: {'200': {description: Bindings}}}
+    post:
+      summary: Create or replace group role binding
+      requestBody: {$ref: '#/components/requestBodies/Role'}
+      responses: {'204': {description: Bound}}
+  /v1/projects/{projectId}/groups/{groupId}/roles/{bindingId}:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}, {$ref: '#/components/parameters/BindingId'}]
+    delete: {summary: Delete group role binding, responses: {'204': {description: Deleted}}}
+  /v1/projects/{projectId}/attestation/capabilities:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    get: {summary: List verifier support, responses: {'200': {description: Capabilities}}}
+  /v1/projects/{projectId}/devices/{deviceId}/attestation:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
+    get: {summary: List device attestation records, responses: {'200': {description: Records}}}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    ProjectId: {name: projectId, in: path, required: true, schema: {type: string, format: uuid}}
+    GroupId: {name: groupId, in: path, required: true, schema: {type: string, format: uuid}}
+    DeviceId: {name: deviceId, in: path, required: true, schema: {type: string, format: uuid}}
+    BindingId: {name: bindingId, in: path, required: true, schema: {type: string, format: uuid}}
+  requestBodies:
+    Role:
+      required: true
+      content: {application/json: {schema: {type: object, required: [oidc_subject, role], properties: {oidc_subject: {type: string}, role: {type: string, enum: [admin, editor, viewer]}}}}}
+  schemas:
+    Platform: {type: string, enum: [android, windows, ios, macos]}
+    Project: {type: object, required: [id, slug, name, oidc_issuer], properties: {id: {type: string, format: uuid}, slug: {type: string}, name: {type: string}, oidc_issuer: {type: string, format: uri}}}
+    GroupInput: {type: object, required: [slug, name], properties: {slug: {type: string, pattern: '^[a-z0-9-]+$'}, name: {type: string}}}
+    Challenge: {type: object, required: [challenge_id, challenge, expires_at], properties: {challenge_id: {type: string, format: uuid}, challenge: {type: string, description: Base64url random bytes}, expires_at: {type: string, format: date-time}}}
+    RegistrationVerify:
+      type: object
+      required: [challenge_id, platform, display_name, public_key_pem, key_identifier, algorithm, evidence]
+      properties:
+        challenge_id: {type: string, format: uuid}
+        platform: {$ref: '#/components/schemas/Platform'}
+        display_name: {type: string}
+        public_key_pem: {type: string}
+        key_identifier: {type: string}
+        algorithm: {type: string}
+        evidence:
+          type: object
+          description: Android uses certificate_chain, an array of PEM or base64 DER certificates (leaf first).
