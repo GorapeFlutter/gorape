@@ -1,0 +1,15 @@
+# VCS / local artifacts
+.git
+.gitignore
+.bin
+.legacy-cmn-core
+
+# Generated / local-only files
+vendor
+coverage.out
+coverage.html
+docs/dist
+etc/*.yaml
+tmp
+dist
+*.log
