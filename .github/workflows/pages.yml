@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Install mdBook
         run: cargo install mdbook --version 0.5.1 --locked
       - name: Validate documentation contract

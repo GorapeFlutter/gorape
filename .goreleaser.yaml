@@ -1,28 +1,108 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
 project_name: gorape
+
 builds:
   - id: server
     main: ./cmd/server
-    binary: gorape-server
+    binary: gorape
     env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: [-s -w]
     goos: [linux]
     goarch: [amd64, arm64]
+
   - id: admin
     main: ./cmd/client/admin
     binary: gorape-admin
     env: [CGO_ENABLED=0]
-    goos: [linux]
+    flags: [-trimpath]
+    ldflags: [-s -w]
+    goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
-nfpm:
-  - package_name: gorape
+
+  - id: client
+    main: ./cmd/client/app
+    binary: gorape-client
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: [-s -w]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: health
+    main: ./cmd/client/anonymous
+    binary: gorape-health
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: [-s -w]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: server
+    ids: [server]
+    name_template: >-
+      gorape_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats: [tar.gz]
+
+  - id: admin
+    ids: [admin]
+    name_template: >-
+      gorape-admin_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+  - id: client
+    ids: [client]
+    name_template: >-
+      gorape-client_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+  - id: health
+    ids: [health]
+    name_template: >-
+      gorape-health_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+nfpms:
+  - id: linux-packages
+    ids: [server, admin, client, health]
+    package_name: gorape
+    file_name_template: "{{ .ConventionalFileName }}"
     vendor: Gorape
     homepage: https://github.com/Gorapeflutter/gorape
     maintainer: Gorape Maintainers
-    description: Gorape security trust authority
+    description: Gorape device trust and hardware attestation backend
+    license: MIT
+    bindir: /usr/bin
     formats: [deb, rpm]
     contents:
-      - src: ./etc/server.yaml
+      - src: ./etc/server.yaml.example
         dst: /etc/gorape/server.yaml
+        type: "config|noreplace"
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-main.{{ .ShortCommit }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
 release:
   github:
     owner: Gorapeflutter

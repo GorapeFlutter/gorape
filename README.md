@@ -12,6 +12,13 @@ GorapeはKeycloakのaccess tokenを検証し、Project/Group権限、Device登�
 - [Swagger UI](https://gorapeflutter.github.io/gorape/swagger/)
 - [OpenAPI source](docs/openapi/openapi.yaml)
 
+## Releases
+
+`main`へのpushごとにコミット固有のprerelease、`vX.Y.Z`タグでは正式releaseを生成します。
+
+- [GitHub Releases](https://github.com/Gorapeflutter/gorape/releases): OS別CLI archive、Linux向けdeb/rpm、checksum
+- [GitHub Container Registry](https://github.com/Gorapeflutter/gorape/pkgs/container/gorape): `main`、`main-<sha>`、SemVerタグのmulti-architecture image
+
 ## Components
 
 ```text

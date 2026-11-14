@@ -12,65 +12,174 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
+  REGISTRY: ghcr.io
   IMAGE_NAME: gorapeflutter/gorape
 
 jobs:
-  test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
       - run: go mod download
       - run: test -z "$(gofmt -l cmd pkg test)"
       - run: go vet ./...
-      - run: go test -race ./...
-      - run: go build ./cmd/...
-      - run: ./scripts/check-docs.sh
-      - run: docker compose --project-directory . -f docker/network.yaml -f docker/postgres.yaml -f docker/redis.yaml -f docker/keycloak.yaml -f docker/server.yaml config
 
-  docker:
-    needs: test
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go test -race ./...
 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go build ./cmd/...
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: ./scripts/check-docs.sh
+
+  compose:
+    name: Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: >-
+          docker compose --project-directory .
+          -f docker/network.yaml
+          -f docker/postgres.yaml
+          -f docker/redis.yaml
+          -f docker/keycloak.yaml
+          -f docker/server.yaml
+          config --quiet
+
+  package-release:
+    name: Package and release
+    if: github.event_name == 'push'
+    needs: [lint, test, build, docs, compose]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build and publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build main snapshot packages
+        if: github.ref == 'refs/heads/main'
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --snapshot --clean
+
+      - name: Publish main prerelease
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mapfile -d '' assets < <(
+            find dist -maxdepth 1 -type f \
+              \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.deb' -o -name '*.rpm' -o -name 'checksums.txt' \) \
+              -print0
+          )
+          test "${#assets[@]}" -gt 0
+          tag="main-${GITHUB_SHA::12}"
+          gh release create "$tag" "${assets[@]}" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "$tag" \
+            --notes "Automated prerelease for main commit $GITHUB_SHA."
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: gorape-packages-${{ github.sha }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/*.deb
+            dist/*.rpm
+            dist/checksums.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  container:
+    name: Publish container
+    if: github.event_name == 'push'
+    needs: [lint, test, build, docs, compose]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
+      - name: Extract image metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=main-,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
-      - name: Build and push
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
-          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64,linux/arm64
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
