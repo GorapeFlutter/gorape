@@ -15,8 +15,6 @@ COMPOSE = docker compose --project-directory . \
 	-f docker/redis.yaml \
 	-f docker/keycloak.yaml \
 	-f docker/server.yaml \
-	-f docker/swagger.yaml \
-	-f docker/godoc.yaml \
 	-f docker/localstack.yaml
 
 GO      ?= go
@@ -45,9 +43,8 @@ help:
 	@echo "    make config          Validate the merged compose configuration"
 	@echo ""
 	@echo "  Documentation"
-	@echo "    make docs            Swagger UI + godoc containers"
-	@echo "    make docs-build      Build static documentation into docs/dist"
-	@echo "    make docs-serve      Serve docs/dist at http://localhost:8000"
+	@echo "    make docs            Build the GitHub Pages artifact into _site"
+	@echo "    make docs-serve      Build and serve _site at http://localhost:8000"
 	@echo ""
 	@echo "  Quality"
 	@echo "    make fmt             gofmt -w cmd pkg test"
@@ -120,15 +117,12 @@ config:
 	@echo "Compose configuration is valid"
 
 # ---------------------------------------------------------------------------
-# Documentation (swagger-ui + godoc)
+# Documentation
 # ---------------------------------------------------------------------------
 docs:
-	$(COMPOSE) up -d swagger-ui godoc
-	@echo "Swagger UI: http://localhost:3002"
-	@echo "Go Docs:    http://localhost:3003"
-
-docs-build:
 	./scripts/main.sh docs build
+
+docs-build: docs
 
 docs-serve:
 	./scripts/main.sh docs serve

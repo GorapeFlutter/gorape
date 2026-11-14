@@ -10,129 +10,210 @@ security:
 paths:
   /health:
     get:
+      tags: [System]
+      operationId: health
       security: []
       summary: Liveness probe
       responses: {'200': {description: Healthy}}
   /v1/projects:
     get:
+      tags: [Projects]
+      operationId: listProjects
       summary: List projects visible to the token subject
       responses: {'200': {description: Projects, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Project'}}}}}}
   /v1/projects/{projectId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
+      tags: [Projects]
+      operationId: getProject
       summary: Get project
       responses: {'200': {description: Project, content: {application/json: {schema: {$ref: '#/components/schemas/Project'}}}}}
   /v1/projects/{projectId}/groups:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
+      tags: [Groups]
+      operationId: listGroups
       summary: List groups
       responses: {'200': {description: Groups, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Group'}}}}}}
     post:
+      tags: [Groups]
+      operationId: createGroup
       summary: Create group (project admin)
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/GroupInput'}}}}
       responses: {'201': {description: Created, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}
   /v1/projects/{projectId}/groups/{groupId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
-    get: {summary: Get group, responses: {'200': {description: Group, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}}
+    get:
+      tags: [Groups]
+      operationId: getGroup
+      summary: Get group
+      responses: {'200': {description: Group, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}
     patch:
+      tags: [Groups]
+      operationId: updateGroup
       summary: Update group (project admin)
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [name], properties: {name: {type: string}, status: {type: string}}}}}}
       responses: {'200': {description: Updated, content: {application/json: {schema: {$ref: '#/components/schemas/Group'}}}}}
-    delete: {summary: Delete group (project admin), responses: {'204': {description: Deleted}}}
+    delete:
+      tags: [Groups]
+      operationId: deleteGroup
+      summary: Delete group (project admin)
+      responses: {'204': {description: Deleted}}
   /v1/projects/{projectId}/devices:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
+      tags: [Devices]
+      operationId: listDevices
       summary: List devices
       responses: {'200': {description: Devices, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Device'}}}}}}
   /v1/projects/{projectId}/devices/{deviceId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
-    get: {summary: Get device, responses: {'200': {description: Device, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}}}
-    delete: {summary: Revoke device (admin/editor), responses: {'204': {description: Revoked}}}
+    get:
+      tags: [Devices]
+      operationId: getDevice
+      summary: Get device
+      responses: {'200': {description: Device, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}}
+    delete:
+      tags: [Devices]
+      operationId: revokeDevice
+      summary: Revoke device (admin/editor)
+      responses: {'204': {description: Revoked}}
   /v1/projects/{projectId}/devices/registration/challenge:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     post:
+      tags: [Registration]
+      operationId: createRegistrationChallenge
       summary: Issue single-use registration challenge
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [platform], properties: {platform: {$ref: '#/components/schemas/Platform'}}}}}}
       responses: {'201': {description: Challenge, content: {application/json: {schema: {$ref: '#/components/schemas/Challenge'}}}}}
   /v1/projects/{projectId}/devices/registration/verify:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     post:
+      tags: [Registration]
+      operationId: verifyRegistration
       summary: Verify attestation and register a device
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegistrationVerify'}}}}
       responses: {'201': {description: Registered, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}, '422': {description: Invalid or unsupported attestation}}
   /v1/projects/{projectId}/devices/{deviceId}/challenge:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
-    post: {summary: Issue a device key proof challenge, responses: {'201': {description: Challenge}}}
+    post:
+      tags: [Proof]
+      operationId: createProofChallenge
+      summary: Issue a device key proof challenge
+      responses: {'201': {description: Challenge}}
   /v1/projects/{projectId}/devices/{deviceId}/verify:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     post:
+      tags: [Proof]
+      operationId: verifyProof
       summary: Verify device key possession
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [challenge_id, signature], properties: {challenge_id: {type: string, format: uuid}, signature: {type: string, description: Base64url signature}}}}}}
       responses: {'200': {description: Verified}}
   /v1/projects/{projectId}/groups/{groupId}/devices:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
     get:
+      tags: [Assignments]
+      operationId: listGroupDevices
       summary: List group devices
       responses: {'200': {description: Devices, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Device'}}}}}}
     post:
+      tags: [Assignments]
+      operationId: bindDevice
       summary: Add device to group
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [device_id], properties: {device_id: {type: string, format: uuid}}}}}}
       responses: {'204': {description: Bound}}
   /v1/projects/{projectId}/groups/{groupId}/devices/{deviceId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}, {$ref: '#/components/parameters/DeviceId'}]
-    delete: {summary: Remove device from group, responses: {'204': {description: Removed}}}
+    delete:
+      tags: [Assignments]
+      operationId: unbindDevice
+      summary: Remove device from group
+      responses: {'204': {description: Removed}}
   /v1/projects/{projectId}/permissions:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
+      tags: [Roles]
+      operationId: getPermissions
       summary: Resolve the caller's effective project permissions
       responses: {'200': {description: Permissions, content: {application/json: {schema: {type: object, properties: {permissions: {type: array, items: {type: string}}, roles: {type: array, items: {type: string}}}}}}}}
   /v1/projects/{projectId}/roles:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
-    get: {summary: List project role definitions and bindings, responses: {'200': {description: Definitions and bindings}}}
+    get:
+      tags: [Roles]
+      operationId: listProjectRoles
+      summary: List project role definitions and bindings
+      responses: {'200': {description: Definitions and bindings}}
     post:
+      tags: [Roles]
+      operationId: putProjectRole
       summary: Create or replace project role binding
       requestBody: {$ref: '#/components/requestBodies/Role'}
       responses: {'204': {description: Bound}}
   /v1/projects/{projectId}/roles/{bindingId}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/BindingId'}]
-    delete: {summary: Delete project role binding, responses: {'204': {description: Deleted}}}
+    delete:
+      tags: [Roles]
+      operationId: deleteRoleBinding
+      summary: Delete project role binding
+      responses: {'204': {description: Deleted}}
   /v1/projects/{projectId}/role-definitions:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
-    get: {summary: List role definitions, responses: {'200': {description: Definitions}}}
+    get:
+      tags: [Roles]
+      operationId: listRoleDefinitions
+      summary: List role definitions
+      responses: {'200': {description: Definitions}}
   /v1/projects/{projectId}/role-definitions/{key}:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {name: key, in: path, required: true, schema: {type: string}}]
     put:
+      tags: [Roles]
+      operationId: putRoleDefinition
       summary: Create or replace a role definition (role:manage)
       requestBody: {$ref: '#/components/requestBodies/RoleDefinition'}
       responses: {'200': {description: Definition}}
-    delete: {summary: Delete an unused non-builtin role definition (role:manage), responses: {'204': {description: Deleted}}}
+    delete:
+      tags: [Roles]
+      operationId: deleteRoleDefinition
+      summary: Delete an unused non-builtin role definition (role:manage)
+      responses: {'204': {description: Deleted}}
   /v1/projects/{projectId}/groups/{groupId}/roles:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
-    get: {summary: List group role bindings, responses: {'200': {description: Bindings}}}
+    get:
+      tags: [Roles]
+      operationId: listGroupRoles
+      summary: List group role bindings
+      responses: {'200': {description: Bindings}}
     post:
+      tags: [Roles]
+      operationId: putGroupRole
       summary: Create or replace group role binding
       requestBody: {$ref: '#/components/requestBodies/Role'}
       responses: {'204': {description: Bound}}
-  /v1/projects/{projectId}/groups/{groupId}/roles/{bindingId}:
-    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}, {$ref: '#/components/parameters/BindingId'}]
-    delete: {summary: Delete group role binding, responses: {'204': {description: Deleted}}}
   /v1/projects/{projectId}/attestation/capabilities:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     get:
+      tags: [Attestation]
+      operationId: getAttestationCapabilities
       summary: List verifier support
       responses: {'200': {description: Capabilities, content: {application/json: {schema: {$ref: '#/components/schemas/AttestationCapabilities'}}}}}
   /v1/projects/{projectId}/devices/{deviceId}/attestation:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     get:
+      tags: [Attestation]
+      operationId: listAttestations
       summary: List device attestation records
       responses: {'200': {description: Records, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/AttestationRecord'}}}}}}
   /v1/platform/provisioning/plan:
     post:
+      tags: [Provisioning]
+      operationId: planProvisioning
       summary: Plan a Keycloak + Gorape provisioning manifest (platform admin)
       requestBody: {$ref: '#/components/requestBodies/Provisioning'}
       responses: {'200': {description: Planned actions}, '403': {description: Not a platform admin}, '503': {description: Provisioning disabled}}
   /v1/platform/provisioning/apply:
     post:
+      tags: [Provisioning]
+      operationId: applyProvisioning
       summary: Apply a Keycloak + Gorape provisioning manifest (platform admin)
       requestBody: {$ref: '#/components/requestBodies/Provisioning'}
       responses: {'200': {description: Applied actions}, '403': {description: Not a platform admin}, '503': {description: Provisioning disabled}}

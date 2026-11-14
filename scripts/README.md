@@ -10,3 +10,5 @@ The inherited unified helper remains available:
 ```
 
 Environment commands delegate to the repository Makefile so Compose service selection stays in one place.
+
+`docs build` reads `docs/book/`, `docs/openapi/`, and `docs/pages/` and writes the ignored GitHub Pages artifact to `_site/`.

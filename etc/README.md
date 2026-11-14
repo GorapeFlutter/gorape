@@ -67,7 +67,7 @@ resources and Gorape projects/roles/groups/bindings in one document:
 
 The CLI calls the Gorape server. The server applies Keycloak via the Admin REST
 API and Gorape in one PostgreSQL transaction. See
-[../docs/architecture/authorization.md](../docs/architecture/authorization.md).
+[authorization documentation](https://gorapeflutter.github.io/gorape/architecture.html).
 
 ## Server Configuration
 

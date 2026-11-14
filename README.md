@@ -1,124 +1,72 @@
-<p align="center">
-  <img src="docs/images/banner.png" alt="Gorape" width="100%">
-</p>
-
 # Gorape
 
-Open Device Trust & Attestation Backend written in Go.
+Go製のDevice Trust / Hardware Attestationバックエンドです。
 
-Gorape validates Keycloak access tokens, applies project/group RBAC, registers attested device public keys, verifies key possession, and records device lifecycle events. It is not an identity provider, certificate authority, or client-certificate issuer.
+GorapeはKeycloakのaccess tokenを検証し、Project/Group権限、Device登録・失効、公開鍵の保有証明、Attestation履歴を管理します。IdP、CA、パスワード管理、秘密鍵保管は行いません。
 
-日本語の概要は [docs/README.ja.md](docs/README.ja.md) を参照してください。
+## Documentation
 
-## Architecture
+- [Gorape Guide](https://gorapeflutter.github.io/gorape/)
+- [ER diagram](https://gorapeflutter.github.io/gorape/er.html)
+- [API endpoint table](https://gorapeflutter.github.io/gorape/endpoints.html)
+- [Swagger UI](https://gorapeflutter.github.io/gorape/swagger/)
+- [OpenAPI source](docs/openapi/openapi.yaml)
+
+## Components
 
 ```text
-Native app / gorape-client
-        | Authorization Code + PKCE
-        v
-     Keycloak
-        | access token
-        v
-      Gorape ---- PostgreSQL (domains, roles, devices, audit)
-        |
-        +--------- Redis (single-use challenges)
+Client ── Authorization Code + PKCE ── Keycloak
+   │                                      │
+   └──────── Access token ───────────── Gorape
+                                          ├── PostgreSQL
+                                          └── Redis
 ```
 
-Each Project maps to exactly one pre-registered Keycloak Realm issuer. A token's `iss + sub` identifies an `identity_principal`; no names, email addresses, or passwords are stored. Unknown issuers never trigger OIDC discovery.
-
-## Status
-
-- Project/Group multi-tenancy with fine-grained, permission-based authorization
-- Dynamic role resolution from Gorape role bindings plus Keycloak realm roles, client roles, and group paths
-- Declarative Keycloak + Gorape provisioning through the server (`gorape-admin provision plan|apply`)
-- PostgreSQL constraints that enforce project boundaries and protect the last project admin
-- Keycloak JWT signature, issuer, audience, expiry, not-before, scope, JWKS, and rotation validation
-- Redis-backed 256-bit, short-lived, atomic single-use challenges
-- Device registration, revocation, group assignment, public-key proof, and events
-- Android Key Attestation certificate-chain, key-binding, and challenge verification
-- Windows TPM and Apple verifiers fail closed as unsupported
-- CLI login using Authorization Code + PKCE
-
-Android deployment requires configured trust-anchor PEM files. Certificate revocation and application-identity policy are not yet implemented; see [SECURITY.md](SECURITY.md).
+- Keycloak RealmとProjectは1対1
+- Principalは検証済み `iss + sub` だけを保持
+- Project/Group単位のpermission-based authorization
+- Redisによる短期・単回使用Challenge
+- Android Key Attestation対応
+- Windows TPM / Apple App Attestはfail closedでunsupported
 
 ## Quick start
 
-Requirements: Go 1.25+, Docker, and Docker Compose.
-
 ```bash
-cp etc/server.yaml.example etc/server.yaml
-cp etc/app.yaml.example etc/app.yaml
-cp etc/admin.yaml.example etc/admin.yaml
+make bootstrap
 make dev-up
 make build
+make test
 ```
 
-Bootstrap a Project after obtaining the Keycloak user's `sub`:
+APIをホストで起動:
 
 ```bash
-.bin/gorape-admin -c etc/admin.yaml bootstrap-project \
-  --slug gorape --name Gorape \
-  --issuer http://localhost:8080/realms/gorape \
-  --realm gorape --admin-subject '<keycloak-sub>'
+make dev-api
 ```
 
-The admin command calls the Gorape server; it no longer writes PostgreSQL or
-Keycloak directly. The caller must hold a platform administrator token from
-`Application.Server.Platform.Issuer` with one of `platform.admin_roles`.
+CLIでKeycloakへPKCEログイン:
 
-For declarative Keycloak and Gorape configuration, edit and apply a manifest:
+```bash
+.bin/gorape-client -c etc/app.yaml login
+```
+
+Project/Keycloak構成はmanifest経由でplan/applyします。
 
 ```bash
 .bin/gorape-admin -c etc/admin.yaml provision plan  -f etc/provisioning.example.yaml
 .bin/gorape-admin -c etc/admin.yaml provision apply -f etc/provisioning.example.yaml
 ```
 
-The server applies Keycloak through the Admin REST API and Gorape through one
-PostgreSQL transaction. See [docs/architecture/authorization.md](docs/architecture/authorization.md).
-
-Production issuers must use HTTPS. The migration permits plain HTTP only for localhost development issuers.
-
-Run the API and authenticate the CLI:
+## Documentation development
 
 ```bash
-.bin/gorape -config etc/server.yaml
-.bin/gorape-client -c etc/app.yaml login
-.bin/gorape-client -c etc/app.yaml list projects
-```
-
-## Project layout
-
-```text
-cmd/server                 API entrypoint
-cmd/client/{admin,app}     operations and API clients
-pkg/config                 YAML, PostgreSQL, Redis, Secrets Manager
-pkg/entity                 domain models and API DTOs (split by concept)
-pkg/server/controller      Gin HTTP layer (split by concept with co-located interfaces)
-pkg/server/usecase         Business rules (split by concept with co-located interfaces)
-pkg/server/repository      GORM, OIDC, challenge adapters (split by concept with co-located interfaces)
-pkg/client                 controller/usecase/repository client layers
-migrations                 PostgreSQL migrations
-docker, etc, scripts       inherited development tooling
-test/{unit,integration,e2e}
-docs/api                   OpenAPI and client protocol documentation
-```
-
-### Code Conventions
-
-- **Concept-Oriented Structure**: Every layer (`entity`, `repository`, `usecase`, `controller`) splits files by conceptual entity (`project.go`, `group.go`, `device.go`, `role.go`), with non-concept / aggregators in `common.go`.
-- **Interface & Constructor Co-location**: Each concept file defines its `interface`, concrete implementation struct, and a `New<Concept>(...)` constructor.
-- **Receiver Naming**: All struct method receivers are consistently named `rcvr`.
-
-## Development
-
-```bash
-make test
-make build
+# mdBook 0.5.1 is required locally
 make docs
+make docs-serve
 ```
 
-The OpenAPI 3.1 contract is [docs/swagger/swagger.yaml](docs/swagger/swagger.yaml). See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+生成物は `_site/` に出力され、Git管理しません。GitHub PagesはCIがmdBookとSwagger UIを同一artifactとして生成・配信します。
 
 ## License
 
-MIT. Existing copyright is preserved in [LICENSE](LICENSE).
+MIT — [LICENSE](LICENSE)

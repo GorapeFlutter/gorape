@@ -46,6 +46,7 @@ etc/*.yml
 *.log
 tmp/
 dist/
+_site/
 
 # CLI token storage (Authorization Code + PKCE access tokens)
 etc/.gorape/
