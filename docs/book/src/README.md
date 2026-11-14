@@ -6,7 +6,8 @@ Gorapeは、Keycloakのaccess tokenで認証し、ハードウェアアテステ
 - Project/Group単位の権限管理
 - PostgreSQLによるテナント分離
 - Redisによる単回使用Challenge
-- Android Key Attestation検証
+- Legacy Android Keystore Key Attestation API
+- WebAuthn passkey registration/assertionとattestation検証（既定deny）
 - OpenAPI 3.1 / JSON REST API
 
 [Swagger UI](./swagger/) · [GitHub](https://github.com/Gorapeflutter/gorape)

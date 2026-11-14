@@ -20,8 +20,12 @@
 | DELETE | `/v1/projects/{projectId}/devices/{deviceId}` | Device失効 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Devices/revokeDevice) |
 | POST | `/v1/projects/{projectId}/devices/registration/challenge` | 登録Challenge発行 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Registration/createRegistrationChallenge) |
 | POST | `/v1/projects/{projectId}/devices/registration/verify` | Attestation検証と登録 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Registration/verifyRegistration) |
+| POST | `/v1/projects/{projectId}/devices/passkeys/registration/options` | Gorape RP用WebAuthn registration options | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Passkeys/createPasskeyRegistrationOptions) |
+| POST | `/v1/projects/{projectId}/devices/passkeys/registration/verify` | WebAuthn credential/attestation検証と登録 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Passkeys/verifyPasskeyRegistration) |
 | POST | `/v1/projects/{projectId}/devices/{deviceId}/challenge` | 鍵保有証明Challenge発行 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Proof/createProofChallenge) |
 | POST | `/v1/projects/{projectId}/devices/{deviceId}/verify` | 鍵保有証明検証 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Proof/verifyProof) |
+| POST | `/v1/projects/{projectId}/devices/{deviceId}/passkeys/authentication/options` | WebAuthn assertion options | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Passkeys/createPasskeyAuthenticationOptions) |
+| POST | `/v1/projects/{projectId}/devices/{deviceId}/passkeys/authentication/verify` | WebAuthn assertion検証 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Passkeys/verifyPasskeyAuthentication) |
 | GET | `/v1/projects/{projectId}/groups/{groupId}/devices` | Group Device一覧 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Assignments/listGroupDevices) |
 | POST | `/v1/projects/{projectId}/groups/{groupId}/devices` | DeviceをGroupへ割当 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Assignments/bindDevice) |
 | DELETE | `/v1/projects/{projectId}/groups/{groupId}/devices/{deviceId}` | Group割当解除 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Assignments/unbindDevice) |
@@ -33,5 +37,5 @@
 | GET | `/v1/projects/{projectId}/role-definitions` | Role定義一覧 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Roles/listRoleDefinitions) |
 | PUT | `/v1/projects/{projectId}/role-definitions/{key}` | Role定義作成・更新 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Roles/putRoleDefinition) |
 | DELETE | `/v1/projects/{projectId}/role-definitions/{key}` | Role定義削除 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Roles/deleteRoleDefinition) |
-| GET | `/v1/projects/{projectId}/attestation/capabilities` | Verifier対応状況 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Attestation/getAttestationCapabilities) |
+| GET | `/v1/projects/{projectId}/attestation/capabilities` | Legacy native-key verifier対応状況 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Attestation/getAttestationCapabilities) |
 | GET | `/v1/projects/{projectId}/devices/{deviceId}/attestation` | Attestation履歴 | [Open](https://gorapeflutter.github.io/gorape/swagger/#/Attestation/listAttestations) |

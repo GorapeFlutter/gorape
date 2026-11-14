@@ -14,6 +14,10 @@ services:
       - ./scripts/data/postgres/000-keycloak.sql:/docker-entrypoint-initdb.d/000-keycloak.sql:ro
       - ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/001-gorape.sql:ro
       - ./migrations/000002_dynamic_authorization.up.sql:/docker-entrypoint-initdb.d/002-gorape-authorization.sql:ro
+      - ./migrations/000003_webauthn.up.sql:/docker-entrypoint-initdb.d/003-gorape-webauthn.sql:ro
+      - ./scripts/data/postgres/004-gorape-demo-seed.sql:/docker-entrypoint-initdb.d/004-gorape-demo-seed.sql:ro
+      - ./migrations/000003_webauthn.up.sql:/docker-entrypoint-initdb.d/003-gorape-webauthn.sql:ro
+      - ./scripts/data/postgres/004-gorape-demo-seed.sql:/docker-entrypoint-initdb.d/004-gorape-demo-seed.sql:ro
     ports:
       - "5432:5432"
     networks:

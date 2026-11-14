@@ -1,6 +1,9 @@
 Application:
   Server:
     port: 8000
+    tls_port: 8443
+    tls_cert_file: ""
+    tls_key_file: ""
     challenge_ttl: 5m
     redis: {challenge_prefix: "gorape:challenge:"}
     oidc:
@@ -8,7 +11,32 @@ Application:
       required_scopes: [openid]
       provider_urls:
         http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
-    attestation: {android_trust_anchors: []}
+    attestation:
+      android_trust_anchors: []
+      webauthn:
+        # Local-device testing only: Android's Credential Manager may return
+        # fmt=none. Keep the tracked production example default-deny.
+        allowed_formats: []
+        allow_none: true
+        allow_self_attestation: false
+        trust_anchors:
+          android-key: []
+          tpm: []
+          apple: []
+    webauthn:
+      # Fixed Android RP ID; the matching DAL statement is hosted by the
+      # Gorapeflutter organization Pages site. Keycloak remains a separate RP.
+      rp_id: gorapeflutter.github.io
+      rp_display_name: Gorape
+      rp_origins:
+        # SHA-256 APK signing-certificate hash for this machine's Android
+        # debug keystore. Replace for another signing key/device environment.
+        - android:apk-key-hash:sB4URkhlaE4cZTNJ_xnP85cKvc_O_LFeEWMb7jJkXWs
+      portal_origin: ""
+      browser_api_origin: ""
+      attestation_conveyance: none
+      user_verification: required
+    web_origins: []
     platform:
       issuer: http://localhost:8080/realms/gorape
       provider_url: http://keycloak:8080/realms/gorape

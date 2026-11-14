@@ -16,13 +16,15 @@ import (
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/entity/provisioning"
 	"github.com/Gorapeflutter/gorape/pkg/entity/request"
+	"github.com/Gorapeflutter/gorape/pkg/entity/response"
 	"github.com/Gorapeflutter/gorape/pkg/server/repository"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrForbidden        = errors.New("forbidden")
-	ErrPlatformDisabled = errors.New("platform authentication is disabled")
+	ErrForbidden                     = errors.New("forbidden")
+	ErrPasskeyAuthenticationRequired = errors.New("デバイス操作にはKeycloakパスキーでのログインが必要です。")
+	ErrPlatformDisabled              = errors.New("platform authentication is disabled")
 )
 
 type ServiceInterface interface {
@@ -43,6 +45,7 @@ type Service struct {
 	group        Group
 	role         Role
 	device       Device
+	passkeys     PasskeyDevice
 	provisioning Provisioning
 }
 
@@ -67,6 +70,11 @@ func (rcvr *Service) ConfigurePlatform(issuer string, adminRoles []string) {
 	if p, ok := rcvr.project.(*projectUsecase); ok {
 		p.configurePlatform(issuer, adminRoles)
 	}
+}
+
+// ConfigureWebAuthn enables Gorape's independent WebAuthn RP ceremonies.
+func (rcvr *Service) ConfigureWebAuthn(rp *repository.WebAuthnRP) {
+	rcvr.passkeys = NewPasskeyDevice(rcvr.Store, rcvr.Challenges, rcvr.project, rcvr.device, rp)
 }
 
 // ConfigureProvisioning enables manifest provisioning. keycloak may be nil to
@@ -135,6 +143,55 @@ func (rcvr *Service) ProofChallenge(ctx context.Context, a model.AuthContext, d 
 }
 func (rcvr *Service) VerifyProof(ctx context.Context, a model.AuthContext, d uuid.UUID, q request.ProofVerify) error {
 	return rcvr.device.VerifyProof(ctx, a, d, q)
+}
+
+func (rcvr *Service) PasskeyRegistrationOptions(ctx context.Context, a model.AuthContext, q request.PasskeyRegistrationOptions) (response.PasskeyCeremonyOptions, error) {
+	if rcvr.passkeys == nil {
+		return response.PasskeyCeremonyOptions{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.RegistrationOptions(ctx, a, q)
+}
+
+func (rcvr *Service) VerifyPasskeyRegistration(ctx context.Context, a model.AuthContext, q request.PasskeyRegistrationVerify) (response.PasskeyRegistrationResult, error) {
+	if rcvr.passkeys == nil {
+		return response.PasskeyRegistrationResult{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.VerifyRegistration(ctx, a, q)
+}
+
+func (rcvr *Service) PasskeyAuthenticationOptions(ctx context.Context, a model.AuthContext, d uuid.UUID, q request.PasskeyAuthenticationOptions) (response.PasskeyCeremonyOptions, error) {
+	if rcvr.passkeys == nil {
+		return response.PasskeyCeremonyOptions{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.AuthenticationOptions(ctx, a, d, q)
+}
+
+func (rcvr *Service) VerifyPasskeyAuthentication(ctx context.Context, a model.AuthContext, d uuid.UUID, q request.PasskeyAuthenticationVerify) error {
+	if rcvr.passkeys == nil {
+		return ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.VerifyAuthentication(ctx, a, d, q)
+}
+
+func (rcvr *Service) PasskeyBrowserOptions(ctx context.Context, challengeID string) (response.PasskeyBrowserOptions, error) {
+	if rcvr.passkeys == nil {
+		return response.PasskeyBrowserOptions{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.BrowserOptions(ctx, challengeID)
+}
+
+func (rcvr *Service) VerifyBrowserPasskeyRegistration(ctx context.Context, q request.BrowserPasskeyRegistrationVerify) (response.PasskeyRegistrationResult, error) {
+	if rcvr.passkeys == nil {
+		return response.PasskeyRegistrationResult{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.VerifyBrowserRegistration(ctx, q)
+}
+
+func (rcvr *Service) VerifyBrowserPasskeyAuthentication(ctx context.Context, q request.BrowserPasskeyAuthenticationVerify) error {
+	if rcvr.passkeys == nil {
+		return ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.VerifyBrowserAuthentication(ctx, q)
 }
 func (rcvr *Service) AuthorizeDevice(ctx context.Context, a model.AuthContext, d uuid.UUID, permission model.Permission) error {
 	return rcvr.device.AuthorizeDevice(ctx, a, d, permission)

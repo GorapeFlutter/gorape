@@ -59,6 +59,7 @@ erDiagram
     uuid project_id FK
     uuid device_id FK
     bytea public_key
+    jsonb credential_data "WebAuthn credential state; attestation blob stripped"
   }
   ATTESTATIONS {
     uuid id PK

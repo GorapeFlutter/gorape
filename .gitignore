@@ -47,6 +47,7 @@ etc/*.yml
 tmp/
 dist/
 _site/
+/config/generated/tls/
 
 # CLI token storage (Authorization Code + PKCE access tokens)
 etc/.gorape/

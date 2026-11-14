@@ -12,6 +12,6 @@ Native client / gorape-client
           └──────── Redis
 ```
 
-GorapeはIdPではありません。ユーザー、パスワード、ログインセッションはKeycloakが管理します。Gorapeは検証済みtokenの `iss + sub` をPrincipalとして参照し、Project、Group、Role、Device、公開鍵、Attestation、監査イベントだけを保存します。
+GorapeはIdPではありません。ユーザー、パスワード、ログインセッションはKeycloakが管理します。Gorapeは検証済みtokenの `iss + sub` をPrincipalとして参照し、Project、Group、Role、Device、公開鍵/WebAuthn credential state、attestation検証結果、監査イベントだけを保存します。Gorape passkeyはKeycloak passkeyとは別RP credentialです。
 
 すべてのProject配下テーブルとrepository queryは `project_id` で分離されます。Root Domainはクラスタ境界であり、DBやREST APIでは管理しません。

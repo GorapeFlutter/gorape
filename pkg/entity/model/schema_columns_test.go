@@ -8,8 +8,7 @@ import (
 )
 
 func TestPersistedModelsMatchCurrentSchema(t *testing.T) {
-	// Keep this list in sync with migrations/000001_init.up.sql and
-	// migrations/000002_dynamic_authorization.up.sql.
+	// Keep this list in sync with the ordered SQL migrations.
 	tests := []struct {
 		name    string
 		model   any
@@ -20,7 +19,7 @@ func TestPersistedModelsMatchCurrentSchema(t *testing.T) {
 		{"group", &Group{}, "groups", []string{"id", "project_id", "slug", "name", "status", "created_at", "updated_at"}},
 		{"principal", &Principal{}, "principals", []string{"id", "project_id", "issuer", "subject", "created_at"}},
 		{"device", &Device{}, "devices", []string{"id", "project_id", "owner_id", "platform", "display_name", "status", "registered_at", "last_verified_at", "revoked_at", "version"}},
-		{"device key", &DeviceKey{}, "device_keys", []string{"id", "project_id", "device_id", "public_key", "key_identifier", "algorithm", "status", "created_at"}},
+		{"device key", &DeviceKey{}, "device_keys", []string{"id", "project_id", "device_id", "public_key", "key_identifier", "algorithm", "credential_data", "status", "created_at"}},
 		{"attestation", &Attestation{}, "attestations", []string{"id", "project_id", "key_id", "attestation_type", "security_level", "verification_status", "verifier_version", "verified_at", "evidence_reference"}},
 		{"device event", &DeviceEvent{}, "device_events", []string{"id", "project_id", "device_id", "actor_id", "event_type", "result", "occurred_at"}},
 		{"device group binding", &DeviceGroupBinding{}, "device_group_bindings", []string{"id", "project_id", "device_id", "group_id", "status", "created_at"}},

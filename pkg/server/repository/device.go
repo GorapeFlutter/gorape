@@ -14,6 +14,7 @@ type Device interface {
 	Devices(ctx context.Context, project uuid.UUID) ([]model.Device, error)
 	Device(ctx context.Context, project, id uuid.UUID) (model.Device, error)
 	DeviceKey(ctx context.Context, project, device uuid.UUID) (model.DeviceKey, error)
+	UpdateCredentialData(ctx context.Context, project, device uuid.UUID, data []byte) error
 	RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.Attestation, actor uuid.UUID) error
 	RevokeDevice(ctx context.Context, project, id, actor uuid.UUID) error
 	MarkDeviceVerified(ctx context.Context, project, id, actor uuid.UUID) error
@@ -47,6 +48,19 @@ func (rcvr *deviceRepository) DeviceKey(ctx context.Context, project, device uui
 	var v model.DeviceKey
 	e := rcvr.db.WithContext(ctx).Where("project_id=? AND device_id=? AND status='active'", project, device).Order("created_at DESC").First(&v).Error
 	return v, mapNotFound(e)
+}
+
+func (rcvr *deviceRepository) UpdateCredentialData(ctx context.Context, project, device uuid.UUID, data []byte) error {
+	result := rcvr.db.WithContext(ctx).Model(&model.DeviceKey{}).
+		Where("project_id=? AND device_id=? AND status='active'", project, device).
+		Update("credential_data", data)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected != 1 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (rcvr *deviceRepository) RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.Attestation, actor uuid.UUID) error {

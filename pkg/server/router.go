@@ -43,6 +43,34 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	if err != nil {
 		log.Fatalf("attestation initialization failed: %v", err)
 	}
+	var webAuthnRP *repository.WebAuthnRP
+	webAuthnConfig := conf.YamlConfig.Application.Server.WebAuthn
+	if webAuthnConfig.RPID != "" || len(webAuthnConfig.RPOrigins) != 0 {
+		trustAnchors := conf.YamlConfig.Application.Server.Attestation.WebAuthn.TrustAnchors
+		if trustAnchors == nil {
+			trustAnchors = map[string][]string{}
+		}
+		if len(trustAnchors["android-key"]) == 0 {
+			trustAnchors["android-key"] = conf.YamlConfig.Application.Server.Attestation.AndroidTrustAnchors
+		}
+		webAuthnRP, err = repository.NewWebAuthnRP(repository.WebAuthnRPConfig{
+			RPID:                  webAuthnConfig.RPID,
+			RPDisplayName:         webAuthnConfig.RPDisplayName,
+			RPOrigins:             webAuthnConfig.RPOrigins,
+			PortalOrigin:          webAuthnConfig.PortalOrigin,
+			BrowserAPIOrigin:      webAuthnConfig.BrowserAPIOrigin,
+			AttestationConveyance: webAuthnConfig.AttestationConveyance,
+			UserVerification:      webAuthnConfig.UserVerification,
+			AllowedFormats:        conf.YamlConfig.Application.Server.Attestation.WebAuthn.AllowedFormats,
+			AllowNone:             conf.YamlConfig.Application.Server.Attestation.WebAuthn.AllowNone,
+			AllowSelfAttestation:  conf.YamlConfig.Application.Server.Attestation.WebAuthn.AllowSelfAttestation,
+			TrustAnchors:          trustAnchors,
+			ChallengeTTL:          conf.YamlConfig.Application.Server.ChallengeTTL,
+		})
+		if err != nil {
+			log.Fatalf("WebAuthn RP initialization failed: %v", err)
+		}
+	}
 	platformCfg := conf.YamlConfig.Application.Server.Platform
 	providerURLs := conf.YamlConfig.Application.Server.OIDC.ProviderURLs
 	if platformCfg.Issuer != "" && platformCfg.ProviderURL != "" {
@@ -67,6 +95,7 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 
 	// -- Usecases --
 	service := usecase.NewService(store, tokens, challenges, registry)
+	service.ConfigureWebAuthn(webAuthnRP)
 	if platformCfg.Issuer != "" {
 		service.ConfigurePlatform(platformCfg.Issuer, platformCfg.AdminRoles)
 	}
@@ -102,7 +131,11 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 		loggerMW = func(c *gin.Context) { c.Next() }
 	}
 
-	router.Use(gin.Recovery(), share.RequestID(), share.RateLimit(120), loggerMW)
+	webOrigins := append([]string(nil), conf.YamlConfig.Application.Server.WebOrigins...)
+	if webAuthnConfig.PortalOrigin != "" {
+		webOrigins = append(webOrigins, webAuthnConfig.PortalOrigin)
+	}
+	router.Use(gin.Recovery(), share.RequestID(), share.CORS(webOrigins), share.RateLimit(120), loggerMW)
 
 	// Health check (no authentication required)
 	router.GET("/health", func(c *gin.Context) {
@@ -110,6 +143,11 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	})
 
 	v1 := router.Group("/v1")
+	// Linux desktop's external-browser ceremony uses a short-lived capability
+	// created by an authenticated options call, not an OIDC token in the browser.
+	v1.POST("/passkeys/browser/options", deviceCtrl.BrowserPasskeyOptions)
+	v1.POST("/passkeys/browser/registration/verify", deviceCtrl.BrowserPasskeyRegistrationVerify)
+	v1.POST("/passkeys/browser/authentication/verify", deviceCtrl.BrowserPasskeyAuthenticationVerify)
 
 	// ============ Projects (Token auth by Issuer) ============
 	projects := v1.Group("/projects")
@@ -143,8 +181,12 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	p.DELETE("/devices/:deviceId", deviceCtrl.RevokeDevice)
 	p.POST("/devices/registration/challenge", deviceCtrl.RegistrationChallenge)
 	p.POST("/devices/registration/verify", deviceCtrl.RegistrationVerify)
+	p.POST("/devices/passkeys/registration/options", deviceCtrl.PasskeyRegistrationOptions)
+	p.POST("/devices/passkeys/registration/verify", deviceCtrl.PasskeyRegistrationVerify)
 	p.POST("/devices/:deviceId/challenge", deviceCtrl.ProofChallenge)
 	p.POST("/devices/:deviceId/verify", deviceCtrl.ProofVerify)
+	p.POST("/devices/:deviceId/passkeys/authentication/options", deviceCtrl.PasskeyAuthenticationOptions)
+	p.POST("/devices/:deviceId/passkeys/authentication/verify", deviceCtrl.PasskeyAuthenticationVerify)
 
 	// Group Device Assignments
 	p.GET("/groups/:groupId/devices", assignmentCtrl.GroupDevices)

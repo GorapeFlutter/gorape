@@ -5,4 +5,5 @@
 - [ER diagram](er.md)
 - [API endpoints](endpoints.md)
 - [Client integration](client.md)
+- [WebAuthn and passkey attestation](webauthn.md)
 - [Security status](security.md)

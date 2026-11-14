@@ -5,10 +5,15 @@
 - ChallengeはProject、Subject、用途へ紐付け、Redisで単回消費
 - Project境界をAPI、query、複合外部キーで検証
 - 未実装Verifierはfail closed
+- Gorape RPのWebAuthn registrationでRP ID、origin、challenge、credential ID/public keyを検証
+- WebAuthn attestationは許可formatとformat別trust anchorを要求し、既定はnoneを拒否
+- proofは単回challengeに対するWebAuthn assertionを検証し、raw attestation evidenceは保存credentialから除去
 
 未完了:
 
-- Android証明書のCRL/OCSP検証
+- Android/WebAuthn attestation証明書のCRL/OCSP検証
 - Android application identity policy
-- Windows TPM 2.0 / Apple App Attest
+- FIDO Metadata ServiceによるAAGUID status/revocation policy
+- WebAuthn Windows TPM / Apple anonymous attestationの実機検証・運用trust bundle
+- Windows/Linux/Web browser redirect, CORS, and RP-domain association needs per-deployment validation
 - クラスタ共有Rate Limit

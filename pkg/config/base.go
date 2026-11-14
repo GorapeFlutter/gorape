@@ -49,7 +49,23 @@ type OIDCConfig struct {
 	ProviderURLs   map[string]string `yaml:"provider_urls"`
 }
 type AttestationConfig struct {
-	AndroidTrustAnchors []string `yaml:"android_trust_anchors"`
+	AndroidTrustAnchors []string                  `yaml:"android_trust_anchors"`
+	WebAuthn            WebAuthnAttestationConfig `yaml:"webauthn"`
+}
+type WebAuthnAttestationConfig struct {
+	AllowedFormats       []string            `yaml:"allowed_formats"`
+	AllowNone            bool                `yaml:"allow_none"`
+	AllowSelfAttestation bool                `yaml:"allow_self_attestation"`
+	TrustAnchors         map[string][]string `yaml:"trust_anchors"`
+}
+type WebAuthnConfig struct {
+	RPID                  string   `yaml:"rp_id"`
+	RPDisplayName         string   `yaml:"rp_display_name"`
+	RPOrigins             []string `yaml:"rp_origins"`
+	PortalOrigin          string   `yaml:"portal_origin"`
+	BrowserAPIOrigin      string   `yaml:"browser_api_origin"`
+	AttestationConveyance string   `yaml:"attestation_conveyance"`
+	UserVerification      string   `yaml:"user_verification"`
 }
 type PlatformConfig struct {
 	Issuer      string   `yaml:"issuer"`
@@ -67,12 +83,17 @@ type KeycloakConfig struct {
 }
 type Server struct {
 	Port             int               `yaml:"port"`
+	TLSPort          int               `yaml:"tls_port"`
+	TLSCertFile      string            `yaml:"tls_cert_file"`
+	TLSKeyFile       string            `yaml:"tls_key_file"`
 	LogLevel         string            `yaml:"log_level"`
 	Redis            RedisConfig       `yaml:"redis"`
 	OIDC             OIDCConfig        `yaml:"oidc"`
 	ChallengeTTL     time.Duration     `yaml:"-"`
 	ChallengeTTLText string            `yaml:"challenge_ttl"`
 	Attestation      AttestationConfig `yaml:"attestation"`
+	WebAuthn         WebAuthnConfig    `yaml:"webauthn"`
+	WebOrigins       []string          `yaml:"web_origins"`
 	Platform         PlatformConfig    `yaml:"platform"`
 	Keycloak         KeycloakConfig    `yaml:"keycloak"`
 }
@@ -130,6 +151,15 @@ func finishConfig(cfg YamlConfig) *BaseConfig {
 	if cfg.Application.Server.Port == 0 {
 		cfg.Application.Server.Port = 8000
 	}
+	if cfg.Application.Server.TLSPort == 0 {
+		cfg.Application.Server.TLSPort = 8443
+	}
+	if certFile := os.Getenv("GORAPE_TLS_CERT_FILE"); certFile != "" {
+		cfg.Application.Server.TLSCertFile = certFile
+	}
+	if keyFile := os.Getenv("GORAPE_TLS_KEY_FILE"); keyFile != "" {
+		cfg.Application.Server.TLSKeyFile = keyFile
+	}
 	if cfg.Application.Server.ChallengeTTLText == "" {
 		cfg.Application.Server.ChallengeTTLText = "5m"
 	}
@@ -152,6 +182,15 @@ func finishConfig(cfg YamlConfig) *BaseConfig {
 	}
 	if cfg.Application.Server.Keycloak.ClientID == "" {
 		cfg.Application.Server.Keycloak.ClientID = "admin-cli"
+	}
+	if cfg.Application.Server.WebAuthn.RPDisplayName == "" {
+		cfg.Application.Server.WebAuthn.RPDisplayName = "Gorape"
+	}
+	if cfg.Application.Server.WebAuthn.AttestationConveyance == "" {
+		cfg.Application.Server.WebAuthn.AttestationConveyance = "direct"
+	}
+	if cfg.Application.Server.WebAuthn.UserVerification == "" {
+		cfg.Application.Server.WebAuthn.UserVerification = "required"
 	}
 	if cfg.Logger.Component == "" {
 		cfg.Logger.Component = "gorape"

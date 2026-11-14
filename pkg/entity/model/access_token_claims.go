@@ -8,14 +8,28 @@ type Roles struct {
 
 // AccessTokenClaims はOIDCアクセストークンのクレーム
 type AccessTokenClaims struct {
-	Issuer         string           `json:"iss"`
-	Subject        string           `json:"sub"`
-	Scope          string           `json:"scope"`
-	ExpiresAt      int64            `json:"exp"`
-	NotBefore      int64            `json:"nbf"`
-	RealmAccess    Roles            `json:"realm_access"`
-	ResourceAccess map[string]Roles `json:"resource_access"`
-	Groups         []string         `json:"groups"`
+	Issuer                string           `json:"iss"`
+	Subject               string           `json:"sub"`
+	Scope                 string           `json:"scope"`
+	ExpiresAt             int64            `json:"exp"`
+	NotBefore             int64            `json:"nbf"`
+	AuthenticationMethods []string         `json:"amr"`
+	AuthenticationContext string           `json:"acr"`
+	RealmAccess           Roles            `json:"realm_access"`
+	ResourceAccess        map[string]Roles `json:"resource_access"`
+	Groups                []string         `json:"groups"`
+}
+
+// PasskeyAuthenticated reports whether Keycloak asserted the configured AMR
+// value for a successful passwordless WebAuthn authentication. It does not
+// infer passkey use from the mere presence of a registered credential.
+func (rcvr AccessTokenClaims) PasskeyAuthenticated() bool {
+	for _, method := range rcvr.AuthenticationMethods {
+		if method == "passkey" {
+			return true
+		}
+	}
+	return false
 }
 
 // AllRoles returns realm roles plus every client role. Gorape maps these role

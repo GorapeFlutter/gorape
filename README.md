@@ -33,8 +33,10 @@ Client ── Authorization Code + PKCE ── Keycloak
 - Principalは検証済み `iss + sub` だけを保持
 - Project/Group単位のpermission-based authorization
 - Redisによる短期・単回使用Challenge
-- Android Key Attestation対応
-- Windows TPM / Apple App Attestはfail closedでunsupported
+- Legacy Android Keystore Key Attestation API
+- WebAuthn RP用passkey registration/assertion endpoints
+- WebAuthn attestation `tpm`, `android-key`, `apple`, `packed`, `fido-u2f`を検証。format allowlistとtrust anchorは必須
+- Passkey attestationは既定でdefault-deny（空allowlist、`allow_none: false`）
 
 ## Quick start
 
@@ -44,6 +46,13 @@ make dev-up
 make build
 make test
 ```
+
+The local Keycloak realm and authorization fixture are loaded declaratively:
+Keycloak imports `etc/keycloak/gorape-realm.json`, and a fresh PostgreSQL
+container runs the schema migrations followed by
+`scripts/data/postgres/004-gorape-demo-seed.sql`. The `demo` project, its groups,
+role definitions, and permission-pattern test bindings are ready after `make dev-up`;
+no `gorape-admin provision apply` step is needed for local development.
 
 APIをホストで起動:
 
@@ -57,7 +66,8 @@ CLIでKeycloakへPKCEログイン:
 .bin/gorape-client -c etc/app.yaml login
 ```
 
-Project/Keycloak構成はmanifest経由でplan/applyします。
+For non-container or custom deployments, project/Keycloak configuration can
+still be managed declaratively through the provisioning manifest:
 
 ```bash
 .bin/gorape-admin -c etc/admin.yaml provision plan  -f etc/provisioning.example.yaml

@@ -90,6 +90,10 @@ func (rcvr *Store) Device(ctx context.Context, project, id uuid.UUID) (model.Dev
 func (rcvr *Store) DeviceKey(ctx context.Context, project, device uuid.UUID) (model.DeviceKey, error) {
 	return rcvr.device.DeviceKey(ctx, project, device)
 }
+
+func (rcvr *Store) UpdateCredentialData(ctx context.Context, project, device uuid.UUID, data []byte) error {
+	return rcvr.device.UpdateCredentialData(ctx, project, device, data)
+}
 func (rcvr *Store) RegisterDevice(ctx context.Context, d *model.Device, k *model.DeviceKey, a *model.Attestation, actor uuid.UUID) error {
 	return rcvr.device.RegisterDevice(ctx, d, k, a, actor)
 }

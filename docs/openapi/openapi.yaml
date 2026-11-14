@@ -85,7 +85,7 @@ paths:
       operationId: createRegistrationChallenge
       summary: Issue single-use registration challenge
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [platform], properties: {platform: {$ref: '#/components/schemas/Platform'}}}}}}
-      responses: {'201': {description: Challenge, content: {application/json: {schema: {$ref: '#/components/schemas/Challenge'}}}}}
+      responses: {'201': {description: Challenge, content: {application/json: {schema: {$ref: '#/components/schemas/Challenge'}}}}, '403': {description: Requires an editor role and a Keycloak passkey-authenticated access token}}
   /v1/projects/{projectId}/devices/registration/verify:
     parameters: [{$ref: '#/components/parameters/ProjectId'}]
     post:
@@ -93,14 +93,32 @@ paths:
       operationId: verifyRegistration
       summary: Verify attestation and register a device
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegistrationVerify'}}}}
-      responses: {'201': {description: Registered, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}, '422': {description: Invalid or unsupported attestation}}
+      responses: {'201': {description: Registered, content: {application/json: {schema: {$ref: '#/components/schemas/Device'}}}}, '403': {description: Requires an editor role and a Keycloak passkey-authenticated access token}, '422': {description: Invalid or unsupported attestation}}
+  /v1/projects/{projectId}/devices/passkeys/registration/options:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    post:
+      tags: [Passkeys]
+      operationId: createPasskeyRegistrationOptions
+      summary: Begin a Gorape RP WebAuthn registration ceremony
+      description: Issues single-use options bound to the authenticated principal. Requires an access token whose amr claim contains passkey. Attestation policy is evaluated server-side; empty allowlists and allow_none=false reject registration by default.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyRegistrationOptionsRequest'}}}}
+      responses: {'201': {description: WebAuthn creation options, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyCeremonyOptions'}}}}, '403': {description: Insufficient permission}, '422': {description: Attestation policy denies all registration formats}, '503': {description: WebAuthn RP is not configured}}
+  /v1/projects/{projectId}/devices/passkeys/registration/verify:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    post:
+      tags: [Passkeys]
+      operationId: verifyPasskeyRegistration
+      summary: Verify WebAuthn registration and platform attestation
+      description: Verifies RP ID, origin, challenge, credential public key, attestation statement, allowed format, and configured trust anchors before storing the device.
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyRegistrationVerify'}}}}
+      responses: {'201': {description: Registered device and verified attestation, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyRegistrationResult'}}}}, '401': {description: Invalid or expired ceremony}, '403': {description: Requires Keycloak passkey authentication}, '422': {description: Invalid or denied attestation}}
   /v1/projects/{projectId}/devices/{deviceId}/challenge:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     post:
       tags: [Proof]
       operationId: createProofChallenge
       summary: Issue a device key proof challenge
-      responses: {'201': {description: Challenge}}
+      responses: {'201': {description: Challenge}, '403': {description: Requires a Keycloak passkey-authenticated access token}}
   /v1/projects/{projectId}/devices/{deviceId}/verify:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     post:
@@ -108,7 +126,48 @@ paths:
       operationId: verifyProof
       summary: Verify device key possession
       requestBody: {required: true, content: {application/json: {schema: {type: object, required: [challenge_id, signature], properties: {challenge_id: {type: string, format: uuid}, signature: {type: string, description: Base64url signature}}}}}}
-      responses: {'200': {description: Verified}}
+      responses: {'200': {description: Verified}, '403': {description: Requires a Keycloak passkey-authenticated access token}}
+  /v1/projects/{projectId}/devices/{deviceId}/passkeys/authentication/options:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
+    post:
+      tags: [Passkeys]
+      operationId: createPasskeyAuthenticationOptions
+      summary: Begin a device passkey assertion ceremony
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyAuthenticationOptionsRequest'}}}}
+      responses: {'201': {description: WebAuthn request options, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyCeremonyOptions'}}}}, '403': {description: Not authorized or passkey authentication is required}, '503': {description: WebAuthn RP is not configured}}
+  /v1/projects/{projectId}/devices/{deviceId}/passkeys/authentication/verify:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
+    post:
+      tags: [Passkeys]
+      operationId: verifyPasskeyAuthentication
+      summary: Verify assertion and record proof of device possession
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyAuthenticationVerify'}}}}
+      responses: {'200': {description: Verified}, '401': {description: Invalid assertion or expired ceremony}, '403': {description: Not authorized or passkey authentication is required}}
+  /v1/passkeys/browser/options:
+    post:
+      tags: [Passkeys]
+      operationId: getBrowserPasskeyOptions
+      security: []
+      summary: Read WebAuthn options using a short-lived browser ceremony capability
+      description: The challenge ID is an unguessable, expiring capability issued by an authenticated options call. Reading its WebAuthn options does not consume it; registration/assertion verification consumes it exactly once. No OIDC token is included in the browser handoff. The browser ceremony page is hosted by gf-app, not by Gorape.
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [challenge_id], properties: {challenge_id: {type: string, format: uuid}}}}}}
+      responses: {'200': {description: Browser WebAuthn options, content: {application/json: {schema: {type: object, required: [ceremony, public_key], properties: {ceremony: {type: string, enum: [registration, authentication]}, public_key: {type: object}}}}}}, '401': {description: Invalid or expired capability}}
+  /v1/passkeys/browser/registration/verify:
+    post:
+      tags: [Passkeys]
+      operationId: verifyBrowserPasskeyRegistration
+      security: []
+      summary: Complete a browser-mediated registration using its one-time capability
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BrowserPasskeyRegistrationVerify'}}}}
+      responses: {'201': {description: Registered device, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyRegistrationResult'}}}}, '401': {description: Invalid or expired capability}, '422': {description: Invalid or denied attestation}}
+  /v1/passkeys/browser/authentication/verify:
+    post:
+      tags: [Passkeys]
+      operationId: verifyBrowserPasskeyAuthentication
+      security: []
+      summary: Complete a browser-mediated assertion using its one-time capability
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BrowserPasskeyAuthenticationVerify'}}}}
+      responses: {'200': {description: Verified}, '401': {description: Invalid assertion or expired capability}}
   /v1/projects/{projectId}/groups/{groupId}/devices:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/GroupId'}]
     get:
@@ -194,8 +253,9 @@ paths:
     get:
       tags: [Attestation]
       operationId: getAttestationCapabilities
-      summary: List verifier support
-      responses: {'200': {description: Capabilities, content: {application/json: {schema: {$ref: '#/components/schemas/AttestationCapabilities'}}}}}
+      summary: List legacy native-key verifier support
+      description: Reports the legacy Android Keystore certificate-chain verifier. WebAuthn format policy is configured separately and enforced by the passkey registration options/verify endpoints.
+      responses: {'200': {description: Legacy verifier capabilities, content: {application/json: {schema: {$ref: '#/components/schemas/AttestationCapabilities'}}}}}
   /v1/projects/{projectId}/devices/{deviceId}/attestation:
     parameters: [{$ref: '#/components/parameters/ProjectId'}, {$ref: '#/components/parameters/DeviceId'}]
     get:
@@ -244,7 +304,7 @@ components:
         kind: {type: string, enum: [Provisioning]}
         keycloak: {type: object, description: 'Realm, roles, groups, clients, protocol mappers and Authorization Services resources/scopes/policies/permissions'}
         gorape: {type: object, description: 'Project, role definitions, groups and role bindings'}
-    Platform: {type: string, enum: [android, windows, ios, macos]}
+    Platform: {type: string, enum: [android, windows, ios, macos, web, linux]}
     Project:
       type: object
       required: [id, slug, name, issuer, realm, status]
@@ -317,3 +377,62 @@ components:
         evidence:
           type: object
           description: Android uses certificate_chain, an array of PEM or base64 DER certificates (leaf first).
+    PasskeyRegistrationOptionsRequest:
+      type: object
+      required: [platform, display_name]
+      properties:
+        platform: {type: string, enum: [android, ios, macos, windows, web, linux]}
+        display_name: {type: string, minLength: 1, maxLength: 120}
+    PasskeyRegistrationVerify:
+      type: object
+      required: [challenge_id, platform, display_name, credential]
+      properties:
+        challenge_id: {type: string, format: uuid}
+        platform: {type: string, enum: [android, ios, macos, windows, web, linux]}
+        display_name: {type: string, minLength: 1, maxLength: 120}
+        credential: {type: object, description: Complete WebAuthn PublicKeyCredential creation response including response.clientDataJSON and response.attestationObject}
+    PasskeyAuthenticationVerify:
+      type: object
+      required: [challenge_id, credential]
+      properties:
+        challenge_id: {type: string, format: uuid}
+        credential: {type: object, description: Complete WebAuthn PublicKeyCredential assertion including clientDataJSON, authenticatorData, and signature}
+    PasskeyAuthenticationOptionsRequest:
+      type: object
+      required: [platform]
+      properties:
+        platform: {$ref: '#/components/schemas/Platform'}
+    BrowserPasskeyRegistrationVerify:
+      type: object
+      required: [challenge_id, credential]
+      properties:
+        challenge_id: {type: string, format: uuid, description: Short-lived single-use capability from an authenticated registration options response}
+        credential: {type: object, description: Complete WebAuthn PublicKeyCredential creation response}
+    BrowserPasskeyAuthenticationVerify:
+      type: object
+      required: [challenge_id, credential]
+      properties:
+        challenge_id: {type: string, format: uuid, description: Short-lived single-use capability from an authenticated assertion options response}
+        credential: {type: object, description: Complete WebAuthn PublicKeyCredential assertion}
+    PasskeyCeremonyOptions:
+      type: object
+      required: [challenge_id, expires_at, public_key]
+      properties:
+        challenge_id: {type: string, format: uuid}
+        expires_at: {type: string, format: date-time}
+        public_key: {type: object, description: WebAuthn creation or request options produced by the configured Gorape RP}
+        browser_url: {type: string, format: uri, description: gf-app Web target's browser ceremony page; present for Linux desktop}
+        browser_api_origin: {type: string, format: uri, description: Gorape API origin used by the browser handoff page; present for Linux desktop}
+    PasskeyRegistrationResult:
+      type: object
+      required: [device, attestation]
+      properties:
+        device: {$ref: '#/components/schemas/Device'}
+        attestation:
+          type: object
+          required: [attestation_type, security_level, verification_status, verifier_version]
+          properties:
+            attestation_type: {type: string, description: WebAuthn fmt value}
+            security_level: {type: string}
+            verification_status: {type: string, enum: [verified]}
+            verifier_version: {type: string}

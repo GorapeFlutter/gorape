@@ -32,6 +32,9 @@ func NewDevice(store *repository.Store, challenges repository.ChallengeStore, ve
 }
 
 func (rcvr *deviceUsecase) RegistrationChallenge(ctx context.Context, a model.AuthContext, platform string) (repository.Challenge, error) {
+	if err := requirePasskeyAuthentication(a); err != nil {
+		return repository.Challenge{}, err
+	}
 	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionDeviceRegister); e != nil {
 		return repository.Challenge{}, e
 	}
@@ -39,6 +42,9 @@ func (rcvr *deviceUsecase) RegistrationChallenge(ctx context.Context, a model.Au
 }
 
 func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthContext, q request.RegistrationVerify) (model.Device, error) {
+	if err := requirePasskeyAuthentication(a); err != nil {
+		return model.Device{}, err
+	}
 	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionDeviceRegister); e != nil {
 		return model.Device{}, e
 	}
@@ -68,6 +74,9 @@ func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthC
 }
 
 func (rcvr *deviceUsecase) ProofChallenge(ctx context.Context, a model.AuthContext, d uuid.UUID) (repository.Challenge, error) {
+	if err := requirePasskeyAuthentication(a); err != nil {
+		return repository.Challenge{}, err
+	}
 	dev, e := rcvr.store.Device(ctx, a.Project.ID, d)
 	if e != nil {
 		return repository.Challenge{}, e
@@ -82,6 +91,9 @@ func (rcvr *deviceUsecase) ProofChallenge(ctx context.Context, a model.AuthConte
 }
 
 func (rcvr *deviceUsecase) VerifyProof(ctx context.Context, a model.AuthContext, d uuid.UUID, q request.ProofVerify) error {
+	if err := requirePasskeyAuthentication(a); err != nil {
+		return err
+	}
 	ch, e := rcvr.challenges.Consume(ctx, q.ChallengeID)
 	if e != nil {
 		return e
@@ -100,10 +112,20 @@ func (rcvr *deviceUsecase) VerifyProof(ctx context.Context, a model.AuthContext,
 	if e != nil {
 		return e
 	}
+	if len(key.CredentialData) != 0 {
+		return errors.New("device requires WebAuthn passkey proof")
+	}
 	if e = verifySignature(key.PublicKey, ch.Value, q.Signature); e != nil {
 		return e
 	}
 	return rcvr.store.MarkDeviceVerified(ctx, a.Project.ID, d, a.Principal.ID)
+}
+
+func requirePasskeyAuthentication(a model.AuthContext) error {
+	if !a.Claims.PasskeyAuthenticated() {
+		return ErrPasskeyAuthenticationRequired
+	}
+	return nil
 }
 
 // AuthorizeDevice checks the owner bypass plus project-scoped and group-scoped

@@ -10,8 +10,14 @@
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "bruteForceProtected": false,
+  "webAuthnPolicyPasswordlessPasskeysEnabled": true,
+  "webAuthnPolicyPasswordlessResidentKey": "required",
+  "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
   "accessTokenLifespan": 1800,
   "ssoSessionMaxLifespan": 36000,
+  "attributes": {
+    "acr.loa.map": "{\"gorape-passkey\":1}"
+  },
   "roles": {
     "realm": [
       {
@@ -49,6 +55,10 @@
       {
         "name": "gorape-viewer",
         "description": "Gorape project viewer; maps to the built-in viewer role definition"
+      },
+      {
+        "name": "demo-auditor",
+        "description": "Custom demo auditor role for permission tests"
       }
     ]
   },
@@ -64,13 +74,18 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "http://127.0.0.1:8400/callback"
+        "http://127.0.0.1:8400/callback",
+        "com.gorapeflutter.gfapp:/oauth2redirect",
+        "http://127.0.0.1:8401/oauth2redirect",
+        "http://localhost:5000/auth.html"
       ],
       "webOrigins": [
-        "http://127.0.0.1:8400"
+        "http://127.0.0.1:8400",
+        "http://localhost:5000"
       ],
       "attributes": {
-        "pkce.code.challenge.method": "S256"
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
       },
       "protocolMappers": [
         {
@@ -1493,6 +1508,18 @@
             "access.token.claim": "true",
             "userinfo.token.claim": "true"
           }
+        },
+        {
+          "name": "gorape-passkey-amr",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-amr-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "lightweight.claim": "false",
+            "userinfo.token.claim": "false"
+          }
         }
       ]
     },
@@ -2384,6 +2411,32 @@
                           ]
                         }
                       ]
+                    },
+                    {
+                      "name": "operations",
+                      "path": "/gorape/projects/demo/groups/operations",
+                      "attributes": {},
+                      "realmRoles": [],
+                      "clientRoles": {},
+                      "subGroups": [
+                        {
+                          "name": "roles",
+                          "path": "/gorape/projects/demo/groups/operations/roles",
+                          "attributes": {},
+                          "realmRoles": [],
+                          "clientRoles": {},
+                          "subGroups": [
+                            {
+                              "name": "editor",
+                              "path": "/gorape/projects/demo/groups/operations/roles/editor",
+                              "attributes": {},
+                              "realmRoles": [],
+                              "clientRoles": {},
+                              "subGroups": []
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
@@ -2396,6 +2449,7 @@
   ],
   "users": [
     {
+      "id": "7fef7962-f927-42d9-99ac-6585dd3fb8c9",
       "username": "gorape-admin",
       "email": "admin@gf.local",
       "emailVerified": true,
@@ -2419,6 +2473,7 @@
       "attributes": {}
     },
     {
+      "id": "49a63887-99b1-41ab-b0d1-5f4ed8254afb",
       "username": "user01",
       "email": "user01@gf.local",
       "enabled": true,
@@ -2435,6 +2490,7 @@
         "app"
       ],
       "groups": [
+        "/gorape/projects/demo/roles/admin",
         "/group001",
         "/group006",
         "/group011",
@@ -2520,6 +2576,7 @@
       }
     },
     {
+      "id": "e1df588c-8657-5b93-a012-c2e4a1d01fa9",
       "username": "user02",
       "email": "user02@gf.local",
       "enabled": true,
@@ -2533,7 +2590,8 @@
         }
       ],
       "realmRoles": [
-        "app"
+        "app",
+        "gorape-editor"
       ],
       "groups": [
         "/group001",
@@ -2621,6 +2679,7 @@
       }
     },
     {
+      "id": "ef6e398d-aa2d-5128-8a44-bae6218069cf",
       "username": "user03",
       "email": "user03@gf.local",
       "enabled": true,
@@ -2634,7 +2693,8 @@
         }
       ],
       "realmRoles": [
-        "app"
+        "app",
+        "gorape-viewer"
       ],
       "groups": [
         "/group001",
@@ -2722,6 +2782,7 @@
       }
     },
     {
+      "id": "3f3e0133-0ee7-5dbf-8843-69abe24747a8",
       "username": "user04",
       "email": "user04@gf.local",
       "enabled": true,
@@ -2735,7 +2796,8 @@
         }
       ],
       "realmRoles": [
-        "app"
+        "app",
+        "gorape-viewer"
       ],
       "groups": [
         "/group001",
@@ -2823,6 +2885,7 @@
       }
     },
     {
+      "id": "590a94f1-a626-512d-a925-b878d21bb358",
       "username": "user05",
       "email": "user05@gf.local",
       "enabled": true,
@@ -2836,9 +2899,11 @@
         }
       ],
       "realmRoles": [
-        "app"
+        "app",
+        "gorape-viewer"
       ],
       "groups": [
+        "/gorape/projects/demo/groups/demo-team/roles/editor",
         "/group001",
         "/group006",
         "/group011",
@@ -2924,6 +2989,7 @@
       }
     },
     {
+      "id": "5b3c52be-5e51-57e0-bd65-58c8c608f863",
       "username": "user06",
       "email": "user06@gf.local",
       "enabled": true,
@@ -2937,9 +3003,11 @@
         }
       ],
       "realmRoles": [
-        "app"
+        "app",
+        "gorape-viewer"
       ],
       "groups": [
+        "/gorape/projects/demo/groups/operations/roles/editor",
         "/group001",
         "/group006",
         "/group011",
@@ -3025,6 +3093,7 @@
       }
     },
     {
+      "id": "14f1e013-2b29-5539-91de-23f40a702fc2",
       "username": "user07",
       "email": "user07@gf.local",
       "enabled": true,
@@ -3038,7 +3107,8 @@
         }
       ],
       "realmRoles": [
-        "app"
+        "app",
+        "demo-auditor"
       ],
       "groups": [
         "/group001",
@@ -3126,6 +3196,7 @@
       }
     },
     {
+      "id": "986d8e20-9532-5ab7-bc2d-581f55490f21",
       "username": "user08",
       "email": "user08@gf.local",
       "enabled": true,
@@ -7468,5 +7539,69 @@
         ]
       }
     }
-  ]
+  ],
+  "browserFlow": "browser",
+  "authenticationFlows": [
+    {
+      "alias": "gorape-passkey-loginless",
+      "description": "Passwordless passkey-only login for gf-app.",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticatorConfig": "gorape-passkey-amr",
+          "authenticator": "webauthn-authenticator-passwordless",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 0,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "gorape-passkey-amr",
+      "config": {
+        "default.reference.value": "passkey",
+        "default.reference.maxAge": "1800"
+      }
+    }
+  ],
+  "clientProfiles": {
+    "profiles": [
+      {
+        "name": "gorape-passkey-route",
+        "description": "Route explicit gf-app passkey requests to loginless WebAuthn.",
+        "executors": [
+          {
+            "executor": "auth-flow-enforcer",
+            "configuration": {
+              "auth-flow-alias": "gorape-passkey-loginless",
+              "auth-flow-loa": "1"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "clientPolicies": {
+    "policies": [
+      {
+        "name": "gorape-passkey-route",
+        "description": "Use passwordless WebAuthn only for explicit passkey ACR requests.",
+        "enabled": true,
+        "conditions": [
+          {
+            "condition": "acr-condition",
+            "configuration": {
+              "acr-property": "gorape-passkey"
+            }
+          }
+        ],
+        "profiles": ["gorape-passkey-route"]
+      }
+    ]
+  }
 }

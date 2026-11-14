@@ -10,6 +10,6 @@ RUN addgroup -S gorape && adduser -S -G gorape gorape
 WORKDIR /app
 COPY --from=builder /gorape /usr/local/bin/gorape
 USER gorape
-EXPOSE 8000
+EXPOSE 8000 8443
 ENTRYPOINT ["gorape"]
 CMD ["-config", "/app/etc/server.yaml"]

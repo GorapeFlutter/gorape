@@ -121,6 +121,10 @@ func fail(c *gin.Context, status int, e error) {
 		status = http.StatusForbidden
 		code = "forbidden"
 	}
+	if errors.Is(e, usecase.ErrPasskeyAuthenticationRequired) {
+		status = http.StatusForbidden
+		code = "passkey_authentication_required"
+	}
 	if errors.Is(e, repository.ErrNotFound) {
 		status = http.StatusNotFound
 		code = "not_found"

@@ -1,11 +1,39 @@
 Application:
   Server:
     port: 8000
+    # Optional direct TLS listener. Keep both paths empty when TLS terminates
+    # at a trusted reverse proxy; when enabled, the server also serves HTTPS.
+    tls_port: 8443
+    tls_cert_file: ""
+    tls_key_file: ""
     log_level: info
     challenge_ttl: 5m
     redis: {challenge_prefix: "gorape:challenge:"}
     oidc: {audience: gorape-api, required_scopes: [openid], provider_urls: {}}
-    attestation: {android_trust_anchors: []}
+    attestation:
+      android_trust_anchors: []
+      webauthn:
+        # Strict by default: no formats, no attestation:none, and no self-attestation.
+        allowed_formats: []
+        allow_none: false
+        allow_self_attestation: false
+        trust_anchors:
+          android-key: []
+          tpm: []
+          apple: []
+    # Configure a stable RP ID distinct from Keycloak and every permitted
+    # app/browser origin to enable Gorape device passkeys. Do not reuse the
+    # localhost-only development configuration from server.yaml.docker in prod.
+    webauthn:
+      rp_id: ""
+      rp_display_name: Gorape
+      rp_origins: []
+      portal_origin: ""
+      browser_api_origin: ""
+      attestation_conveyance: direct
+      user_verification: required
+    # Exact web app origins allowed to call the API through CORS.
+    web_origins: []
     # Platform administrators can provision projects, roles and Keycloak
     # resources through /v1/platform/provisioning/{plan,apply}.
     platform:
