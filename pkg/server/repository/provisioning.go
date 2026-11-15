@@ -9,6 +9,7 @@ import (
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/entity/provisioning"
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -30,6 +31,10 @@ func NewProvisioning(db *gorm.DB) Provisioning {
 }
 
 func (rcvr *provisioningRepository) ApplyGorape(ctx context.Context, spec provisioning.GorapeSpec) (uuid.UUID, []provisioning.Action, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPG1, "ApplyGorape start", map[string]interface{}{"slug": spec.Project.Slug})
+	}
 	actions := make([]provisioning.Action, 0, 16)
 	var projectID uuid.UUID
 	err := rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -222,7 +227,13 @@ func (rcvr *provisioningRepository) ApplyGorape(ctx context.Context, spec provis
 		return nil
 	})
 	if err != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNPG2, "ApplyGorape error", map[string]interface{}{"error": err})
+		}
 		return uuid.Nil, nil, err
+	}
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPG3, "ApplyGorape done", map[string]interface{}{"project": projectID, "actions": len(actions)})
 	}
 	return projectID, actions, nil
 }

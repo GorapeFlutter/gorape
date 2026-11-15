@@ -62,6 +62,7 @@ func calculateMaxCodeLength() int {
 		SRNRR1, SRNRR2, SRNRR3, SRNRR4, SRNRR5, SRNRR6, SRNRR7, SRNRR8, SRNRR9, SRNRR10, SRNRR11, SRNRR12, SRNRR13, SRNRR14, SRNRR15, SRNRR16, SRNRR17, SRNRR18, SRNRR19, SRNRR20, SRNRR21, SRNRR22,
 		SRNRSR1, SRNRSR2,
 		SRNPR1, SRNPR2, SRNPR3, SRNPR4, SRNPR5, SRNPR6, SRNPR7, SRNPR8, SRNPR9, SRNPR10,
+		SRNPG1, SRNPG2, SRNPG3,
 		// Server - Middleware codes
 		SMNL1, SMNL2, SMNL3, SMNL4, SMNL5,
 		SMLWC1, SMLWC2, SMLWC3, SMLWC4, SMLWC5,
@@ -277,6 +278,11 @@ var (
 	SRNPR8  = MCode{"SRNPR8", "PutProject error"}
 	SRNPR9  = MCode{"SRNPR9", "Projects start"}
 	SRNPR10 = MCode{"SRNPR10", "Projects done"}
+
+	// ProvisioningRepository related
+	SRNPG1 = MCode{"SRNPG1", "ApplyGorape start"}
+	SRNPG2 = MCode{"SRNPG2", "ApplyGorape error"}
+	SRNPG3 = MCode{"SRNPG3", "ApplyGorape done"}
 
 	// Server - Middleware (SM prefix)
 	// NewLogger related
