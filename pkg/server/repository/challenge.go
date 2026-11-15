@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 )
@@ -53,6 +54,10 @@ func (rcvr *RedisChallengeStore) Create(ctx context.Context, p uuid.UUID, sub, p
 }
 
 func (rcvr *RedisChallengeStore) CreateWithValue(ctx context.Context, p uuid.UUID, sub, purpose string, d uuid.UUID, value []byte, payload json.RawMessage) (Challenge, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNCH1, "RedisChallenge CreateWithValue start", map[string]interface{}{"project": p})
+	}
 	if len(value) < 16 {
 		return Challenge{}, errors.New("challenge value must contain at least 16 bytes")
 	}
@@ -69,6 +74,10 @@ var consumeScript = redis.NewScript(`local v=redis.call('GET',KEYS[1]); if not v
 
 // GF-10009 — Atomically consumes a Redis challenge once and rejects expired values.
 func (rcvr *RedisChallengeStore) Consume(ctx context.Context, id string) (Challenge, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNCH2, "RedisChallenge Consume start", map[string]interface{}{"id": id})
+	}
 	result, e := consumeScript.Run(ctx, rcvr.client, []string{rcvr.prefix + id}).Result()
 	if e == redis.Nil {
 		return Challenge{}, ErrChallengeInvalid
@@ -88,6 +97,10 @@ func (rcvr *RedisChallengeStore) Consume(ctx context.Context, id string) (Challe
 }
 
 func (rcvr *RedisChallengeStore) Get(ctx context.Context, id string) (Challenge, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNCH3, "RedisChallenge Get start", map[string]interface{}{"id": id})
+	}
 	raw, err := rcvr.client.Get(ctx, rcvr.prefix+id).Bytes()
 	if err == redis.Nil {
 		return Challenge{}, ErrChallengeInvalid
@@ -121,6 +134,10 @@ func (rcvr *MemoryChallengeStore) Create(ctx context.Context, p uuid.UUID, sub, 
 }
 
 func (rcvr *MemoryChallengeStore) CreateWithValue(ctx context.Context, p uuid.UUID, sub, purpose string, d uuid.UUID, value []byte, payload json.RawMessage) (Challenge, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNCH4, "MemoryChallenge CreateWithValue start", map[string]interface{}{"project": p})
+	}
 	if err := ctx.Err(); err != nil {
 		return Challenge{}, err
 	}
@@ -134,6 +151,9 @@ func (rcvr *MemoryChallengeStore) CreateWithValue(ctx context.Context, p uuid.UU
 	return v, nil
 }
 func (rcvr *MemoryChallengeStore) Consume(_ context.Context, id string) (Challenge, error) {
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG("", global.SRNCH5, "MemoryChallenge Consume start", map[string]interface{}{"id": id})
+	}
 	rcvr.mu.Lock()
 	defer rcvr.mu.Unlock()
 	v, ok := rcvr.items[id]
@@ -145,6 +165,10 @@ func (rcvr *MemoryChallengeStore) Consume(_ context.Context, id string) (Challen
 }
 
 func (rcvr *MemoryChallengeStore) Get(ctx context.Context, id string) (Challenge, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNCH6, "MemoryChallenge Get start", map[string]interface{}{"id": id})
+	}
 	if err := ctx.Err(); err != nil {
 		return Challenge{}, err
 	}

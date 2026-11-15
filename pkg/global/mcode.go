@@ -54,6 +54,7 @@ func calculateMaxCodeLength() int {
 		// Server - Repository codes
 		SRNRC1, SRNRC2, SRNRC3, SRNRC4, SRNRC5,
 		SRNCR1, SRNCR2,
+		SRNCH1, SRNCH2, SRNCH3, SRNCH4, SRNCH5, SRNCH6,
 		SRNUR1, SRNUR2,
 		SRNUPR1, SRNUPR2, SRNUPR3, SRNUPR4, SRNUPR5, SRNUPR6,
 		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
@@ -185,6 +186,14 @@ var (
 	// NewCommonRepository related
 	SRNCR1 = MCode{"SRNCR1", "NewCommonRepository start"}
 	SRNCR2 = MCode{"SRNCR2", "CommonRepository created"}
+
+	// ChallengeStore related
+	SRNCH1 = MCode{"SRNCH1", "RedisChallenge CreateWithValue start"}
+	SRNCH2 = MCode{"SRNCH2", "RedisChallenge Consume start"}
+	SRNCH3 = MCode{"SRNCH3", "RedisChallenge Get start"}
+	SRNCH4 = MCode{"SRNCH4", "MemoryChallenge CreateWithValue start"}
+	SRNCH5 = MCode{"SRNCH5", "MemoryChallenge Consume start"}
+	SRNCH6 = MCode{"SRNCH6", "MemoryChallenge Get start"}
 
 	// NewUserRepository related
 	SRNUR1 = MCode{"SRNUR1", "NewUserRepository start"}
