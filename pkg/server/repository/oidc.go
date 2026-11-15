@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	gooidc "github.com/coreos/go-oidc/v3/oidc"
 )
 
@@ -28,6 +29,10 @@ func NewOIDCValidator(audience string, scopes []string, providerURLs map[string]
 	return &OIDCValidator{audience: audience, scopes: scopes, providerURLs: providerURLs, verifiers: map[string]*gooidc.IDTokenVerifier{}}
 }
 func (rcvr *OIDCValidator) Validate(ctx context.Context, p model.Project, raw string) (model.AccessTokenClaims, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNOIDC1, "OIDC Validate start", map[string]interface{}{"project": p.ID})
+	}
 	if p.OIDCIssuer == "" || p.Status != "active" {
 		return model.AccessTokenClaims{}, errors.New("inactive or invalid project issuer")
 	}
