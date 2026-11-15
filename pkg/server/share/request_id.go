@@ -1,6 +1,8 @@
 package share
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -20,6 +22,9 @@ func RequestID() gin.HandlerFunc {
 		// Store in context
 		c.Set(RequestIDKey, requestID)
 
+		// Propagate into request context so handlers/usecases/repos can read it
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), RequestIDKey, requestID))
+
 		// Set response header
 		c.Header("X-Request-ID", requestID)
 
@@ -31,6 +36,23 @@ func RequestID() gin.HandlerFunc {
 func GetRequestID(c *gin.Context) string {
 	if requestID, exists := c.Get(RequestIDKey); exists {
 		if id, ok := requestID.(string); ok {
+			return id
+		}
+	}
+	return ""
+}
+
+// GetRequestIDFromContext extracts the request ID from a context.Context.
+// The request ID is propagated via context value under key "requestID".
+func GetRequestIDFromContext(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if gc, ok := ctx.(*gin.Context); ok {
+		return GetRequestID(gc)
+	}
+	if v := ctx.Value(RequestIDKey); v != nil {
+		if id, ok := v.(string); ok {
 			return id
 		}
 	}
