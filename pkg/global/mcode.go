@@ -55,6 +55,7 @@ func calculateMaxCodeLength() int {
 		SRNRC1, SRNRC2, SRNRC3, SRNRC4, SRNRC5,
 		SRNCR1, SRNCR2,
 		SRNCH1, SRNCH2, SRNCH3, SRNCH4, SRNCH5, SRNCH6,
+		SRNKC1, SRNKC2, SRNKC3,
 		SRNUR1, SRNUR2,
 		SRNUPR1, SRNUPR2, SRNUPR3, SRNUPR4, SRNUPR5, SRNUPR6,
 		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
@@ -188,6 +189,11 @@ var (
 	// NewCommonRepository related
 	SRNCR1 = MCode{"SRNCR1", "NewCommonRepository start"}
 	SRNCR2 = MCode{"SRNCR2", "CommonRepository created"}
+
+	// KeycloakAdmin related
+	SRNKC1 = MCode{"SRNKC1", "Keycloak Plan start"}
+	SRNKC2 = MCode{"SRNKC2", "Keycloak Apply start"}
+	SRNKC3 = MCode{"SRNKC3", "Keycloak apply start"}
 
 	// ChallengeStore related
 	SRNCH1 = MCode{"SRNCH1", "RedisChallenge CreateWithValue start"}

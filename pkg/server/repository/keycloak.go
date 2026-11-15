@@ -15,6 +15,7 @@ import (
 
 	"github.com/Gorapeflutter/gorape/pkg/config"
 	"github.com/Gorapeflutter/gorape/pkg/entity/provisioning"
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/google/uuid"
 )
 
@@ -69,14 +70,26 @@ func NewKeycloakAdmin(cfg config.KeycloakConfig) (*KeycloakAdmin, error) {
 }
 
 func (rcvr *KeycloakAdmin) Plan(ctx context.Context, spec provisioning.KeycloakSpec) ([]provisioning.Action, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNKC1, "Keycloak Plan start", map[string]interface{}{"realm": spec.Realm})
+	}
 	return rcvr.apply(ctx, spec, true)
 }
 
 func (rcvr *KeycloakAdmin) Apply(ctx context.Context, spec provisioning.KeycloakSpec) ([]provisioning.Action, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNKC2, "Keycloak Apply start", map[string]interface{}{"realm": spec.Realm})
+	}
 	return rcvr.apply(ctx, spec, false)
 }
 
 func (rcvr *KeycloakAdmin) apply(ctx context.Context, spec provisioning.KeycloakSpec, dry bool) ([]provisioning.Action, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNKC3, "Keycloak apply start", map[string]interface{}{"realm": spec.Realm, "dry": dry})
+	}
 	realm := spec.Realm
 	if realm == "" {
 		realm = rcvr.cfg.AdminRealm
