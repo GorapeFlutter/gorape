@@ -58,7 +58,7 @@ func calculateMaxCodeLength() int {
 		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
 		SRNDR1, SRNDR2, SRNDR3, SRNDR4, SRNDR5, SRNDR6, SRNDR7, SRNDR8, SRNDR9, SRNDR10, SRNDR11, SRNDR12, SRNDR13, SRNDR14, SRNDR15, SRNDR16, SRNDR17, SRNDR18, SRNDR19, SRNDR20, SRNDR21, SRNDR22, SRNDR23,
 		SRNMR1, SRNMR2,
-		SRNRR1, SRNRR2,
+		SRNRR1, SRNRR2, SRNRR3, SRNRR4, SRNRR5, SRNRR6, SRNRR7, SRNRR8, SRNRR9, SRNRR10, SRNRR11, SRNRR12, SRNRR13, SRNRR14, SRNRR15, SRNRR16, SRNRR17, SRNRR18, SRNRR19, SRNRR20, SRNRR21, SRNRR22,
 		SRNRSR1, SRNRSR2,
 		SRNPR1, SRNPR2, SRNPR3, SRNPR4, SRNPR5, SRNPR6, SRNPR7, SRNPR8, SRNPR9, SRNPR10,
 		// Server - Middleware codes
@@ -230,8 +230,28 @@ var (
 	SRNMR2 = MCode{"SRNMR2", "MemberRepository created"}
 
 	// NewRoleRepository related
-	SRNRR1 = MCode{"SRNRR1", "NewRoleRepository start"}
-	SRNRR2 = MCode{"SRNRR2", "RoleRepository created"}
+	SRNRR1  = MCode{"SRNRR1", "NewRoleRepository start"}
+	SRNRR2  = MCode{"SRNRR2", "RoleRepository created"}
+	SRNRR3  = MCode{"SRNRR3", "RoleDefinition start"}
+	SRNRR4  = MCode{"SRNRR4", "RoleDefinition not found or error"}
+	SRNRR5  = MCode{"SRNRR5", "RoleDefinitions start"}
+	SRNRR6  = MCode{"SRNRR6", "RoleDefinitions done"}
+	SRNRR7  = MCode{"SRNRR7", "PutRoleDefinition start"}
+	SRNRR8  = MCode{"SRNRR8", "PutRoleDefinition error"}
+	SRNRR9  = MCode{"SRNRR9", "DeleteRoleDefinition start"}
+	SRNRR10 = MCode{"SRNRR10", "DeleteRoleDefinition error"}
+	SRNRR11 = MCode{"SRNRR11", "RoleBindings start"}
+	SRNRR12 = MCode{"SRNRR12", "RoleBindings done"}
+	SRNRR13 = MCode{"SRNRR13", "ProjectRoleBindings start"}
+	SRNRR14 = MCode{"SRNRR14", "ProjectRoleBindings done"}
+	SRNRR15 = MCode{"SRNRR15", "GroupRoleBindings start"}
+	SRNRR16 = MCode{"SRNRR16", "GroupRoleBindings done"}
+	SRNRR17 = MCode{"SRNRR17", "RoleBinding start"}
+	SRNRR18 = MCode{"SRNRR18", "RoleBinding not found or error"}
+	SRNRR19 = MCode{"SRNRR19", "PutRoleBinding start"}
+	SRNRR20 = MCode{"SRNRR20", "PutRoleBinding error"}
+	SRNRR21 = MCode{"SRNRR21", "DeleteRoleBinding start"}
+	SRNRR22 = MCode{"SRNRR22", "DeleteRoleBinding error"}
 
 	// NewResourceRepository related
 	SRNRSR1 = MCode{"SRNRSR1", "NewResourceRepository start"}

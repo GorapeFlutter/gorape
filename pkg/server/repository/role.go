@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -39,18 +40,38 @@ func NewRole(db *gorm.DB) Role {
 }
 
 func (rcvr *roleRepository) RoleDefinition(ctx context.Context, project uuid.UUID, key string) (model.RoleDefinition, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR3, "RoleDefinition start", map[string]interface{}{"project": project, "key": key})
+	}
 	var v model.RoleDefinition
 	e := rcvr.db.WithContext(ctx).Where("project_id=? AND key=?", project, key).First(&v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNRR4, "RoleDefinition not found or error", map[string]interface{}{"error": e})
+		}
+	}
 	return v, mapNotFound(e)
 }
 
 func (rcvr *roleRepository) RoleDefinitions(ctx context.Context, project uuid.UUID) ([]model.RoleDefinition, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR5, "RoleDefinitions start", map[string]interface{}{"project": project})
+	}
 	var v []model.RoleDefinition
 	e := rcvr.db.WithContext(ctx).Where("project_id=?", project).Order("key").Find(&v).Error
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR6, "RoleDefinitions done", map[string]interface{}{"count": len(v), "error": e})
+	}
 	return v, e
 }
 
 func (rcvr *roleRepository) PutRoleDefinition(ctx context.Context, v *model.RoleDefinition) error {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR7, "PutRoleDefinition start", map[string]interface{}{"project": v.ProjectID, "key": v.Key})
+	}
 	if v.ID == uuid.Nil {
 		v.ID = uuid.New()
 	}
@@ -63,14 +84,24 @@ func (rcvr *roleRepository) PutRoleDefinition(ctx context.Context, v *model.Role
 	if v.Permissions == nil {
 		v.Permissions = model.PermissionList{}
 	}
-	return rcvr.db.WithContext(ctx).Clauses(clause.OnConflict{
+	e := rcvr.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "project_id"}, {Name: "key"}},
 		DoUpdates: clause.AssignmentColumns([]string{"name", "permissions", "keycloak_role", "builtin", "updated_at"}),
 	}).Create(v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNRR8, "PutRoleDefinition error", map[string]interface{}{"error": e})
+		}
+	}
+	return e
 }
 
 func (rcvr *roleRepository) DeleteRoleDefinition(ctx context.Context, project uuid.UUID, key string) error {
-	return rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR9, "DeleteRoleDefinition start", map[string]interface{}{"project": project, "key": key})
+	}
+	e := rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var n int64
 		if e := tx.Model(&model.RoleBinding{}).Where("project_id=? AND role_key=?", project, key).Count(&n).Error; e != nil {
 			return e
@@ -87,34 +118,74 @@ func (rcvr *roleRepository) DeleteRoleDefinition(ctx context.Context, project uu
 		}
 		return nil
 	})
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNRR10, "DeleteRoleDefinition error", map[string]interface{}{"error": e})
+		}
+	}
+	return e
 }
 
 func (rcvr *roleRepository) RoleBindings(ctx context.Context, project, principal uuid.UUID) ([]model.RoleBinding, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR11, "RoleBindings start", map[string]interface{}{"project": project, "principal": principal})
+	}
 	var v []model.RoleBinding
 	e := rcvr.db.WithContext(ctx).Where("project_id=? AND principal_id=?", project, principal).Order("scope, created_at").Find(&v).Error
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR12, "RoleBindings done", map[string]interface{}{"count": len(v), "error": e})
+	}
 	return v, e
 }
 
 func (rcvr *roleRepository) ProjectRoleBindings(ctx context.Context, project uuid.UUID) ([]model.RoleBinding, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR13, "ProjectRoleBindings start", map[string]interface{}{"project": project})
+	}
 	var v []model.RoleBinding
 	e := rcvr.db.WithContext(ctx).Where("project_id=? AND scope='project'", project).Order("created_at").Find(&v).Error
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR14, "ProjectRoleBindings done", map[string]interface{}{"count": len(v), "error": e})
+	}
 	return v, e
 }
 
 func (rcvr *roleRepository) GroupRoleBindings(ctx context.Context, project, group uuid.UUID) ([]model.RoleBinding, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR15, "GroupRoleBindings start", map[string]interface{}{"project": project, "group": group})
+	}
 	var v []model.RoleBinding
 	e := rcvr.db.WithContext(ctx).Where("project_id=? AND scope='group' AND group_id=?", project, group).Order("created_at").Find(&v).Error
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR16, "GroupRoleBindings done", map[string]interface{}{"count": len(v), "error": e})
+	}
 	return v, e
 }
 
 func (rcvr *roleRepository) RoleBinding(ctx context.Context, project, binding uuid.UUID) (model.RoleBinding, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR17, "RoleBinding start", map[string]interface{}{"project": project, "binding": binding})
+	}
 	var v model.RoleBinding
 	e := rcvr.db.WithContext(ctx).Where("project_id=? AND id=?", project, binding).First(&v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNRR18, "RoleBinding not found or error", map[string]interface{}{"error": e})
+		}
+	}
 	return v, mapNotFound(e)
 }
 
 func (rcvr *roleRepository) PutRoleBinding(ctx context.Context, v *model.RoleBinding) error {
-	return rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR19, "PutRoleBinding start", map[string]interface{}{"project": v.ProjectID})
+	}
+	e := rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var definition model.RoleDefinition
 		if e := tx.Where("project_id=? AND key=?", v.ProjectID, v.RoleKey).First(&definition).Error; e != nil {
 			if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -144,7 +215,6 @@ func (rcvr *roleRepository) PutRoleBinding(ctx context.Context, v *model.RoleBin
 			v.ID = uuid.New()
 		}
 		v.CreatedAt = time.Now().UTC()
-
 		q := tx.Where("project_id=? AND principal_id=?", v.ProjectID, v.PrincipalID)
 		if v.Scope == model.BindingScopeGroup {
 			q = q.Where("scope='group' AND group_id=?", *v.GroupID)
@@ -156,10 +226,20 @@ func (rcvr *roleRepository) PutRoleBinding(ctx context.Context, v *model.RoleBin
 		}
 		return tx.Create(v).Error
 	})
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNRR20, "PutRoleBinding error", map[string]interface{}{"error": e})
+		}
+	}
+	return e
 }
 
 func (rcvr *roleRepository) DeleteRoleBinding(ctx context.Context, project, binding uuid.UUID) error {
-	return rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNRR21, "DeleteRoleBinding start", map[string]interface{}{"project": project, "binding": binding})
+	}
+	e := rcvr.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var projectLock struct{ ID uuid.UUID }
 		if e := tx.Table("projects").Select("id").Clauses(clause.Locking{Strength: "UPDATE"}).Where("id=?", project).Take(&projectLock).Error; e != nil {
 			return mapNotFound(e)
@@ -179,14 +259,7 @@ func (rcvr *roleRepository) DeleteRoleBinding(ctx context.Context, project, bind
 			}
 			if grantsProjectAdmin(definition.Permissions) {
 				var n int64
-				if e := tx.Raw(`
-					SELECT count(*)
-					FROM role_bindings b
-					JOIN role_definitions d ON d.project_id=b.project_id AND d.key=b.role_key
-					WHERE b.project_id=? AND b.scope='project'
-					  AND (d.permissions @> '["*"]'::jsonb OR d.permissions @> '["project:manage"]'::jsonb)`,
-					project,
-				).Scan(&n).Error; e != nil {
+				if e := tx.Raw(`SELECT count(*) FROM role_bindings b JOIN role_definitions d ON d.project_id=b.project_id AND d.key=b.role_key WHERE b.project_id=? AND b.scope='project' AND (d.permissions @> '["*"]'::jsonb OR d.permissions @> '["project:manage"]'::jsonb)`, project).Scan(&n).Error; e != nil {
 					return e
 				}
 				if n <= 1 {
@@ -196,6 +269,12 @@ func (rcvr *roleRepository) DeleteRoleBinding(ctx context.Context, project, bind
 		}
 		return tx.Delete(&v).Error
 	})
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNRR22, "DeleteRoleBinding error", map[string]interface{}{"error": e})
+		}
+	}
+	return e
 }
 
 func grantsProjectAdmin(permissions model.PermissionList) bool {
