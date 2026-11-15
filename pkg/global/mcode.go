@@ -61,6 +61,7 @@ func calculateMaxCodeLength() int {
 		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
 		SRNDR1, SRNDR2, SRNDR3, SRNDR4, SRNDR5, SRNDR6, SRNDR7, SRNDR8, SRNDR9, SRNDR10, SRNDR11, SRNDR12, SRNDR13, SRNDR14, SRNDR15, SRNDR16, SRNDR17, SRNDR18, SRNDR19, SRNDR20, SRNDR21, SRNDR22, SRNDR23,
 		SRNMR1, SRNMR2,
+		SRNWA1, SRNWA2, SRNWA3, SRNWA4, SRNWA5,
 		SRNAT1, SRNAT2, SRNAT3, SRNAT4,
 		SRNAS1, SRNAS2,
 		SRNRR1, SRNRR2, SRNRR3, SRNRR4, SRNRR5, SRNRR6, SRNRR7, SRNRR8, SRNRR9, SRNRR10, SRNRR11, SRNRR12, SRNRR13, SRNRR14, SRNRR15, SRNRR16, SRNRR17, SRNRR18, SRNRR19, SRNRR20, SRNRR21, SRNRR22,
@@ -256,6 +257,13 @@ var (
 	// NewMemberRepository related
 	SRNMR1 = MCode{"SRNMR1", "NewMemberRepository start"}
 	SRNMR2 = MCode{"SRNMR2", "MemberRepository created"}
+
+	// WebAuthnRP related
+	SRNWA1 = MCode{"SRNWA1", "NewWebAuthnRP start"}
+	SRNWA2 = MCode{"SRNWA2", "RegistrationOptions start"}
+	SRNWA3 = MCode{"SRNWA3", "VerifyRegistration start"}
+	SRNWA4 = MCode{"SRNWA4", "AuthenticationOptions start"}
+	SRNWA5 = MCode{"SRNWA5", "VerifyAuthentication start"}
 
 	// AttestationVerifier related
 	SRNAT1 = MCode{"SRNAT1", "VerifierRegistry Verify start"}

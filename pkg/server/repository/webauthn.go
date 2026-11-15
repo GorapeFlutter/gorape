@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"golang.org/x/net/publicsuffix"
@@ -71,6 +72,9 @@ type WebAuthnAttestationResult struct {
 
 // GF-10010 — Validates RP/attestation configuration and constructs the WebAuthn RP.
 func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG("", global.SRNWA1, "NewWebAuthnRP start", map[string]interface{}{"rp_id": config.RPID})
+	}
 	if config.RPID == "" || len(config.RPOrigins) == 0 {
 		return nil, errors.New("WebAuthn RP ID and at least one allowed origin are required")
 	}
@@ -205,6 +209,9 @@ func (rp *WebAuthnRP) BrowserPortalReady() bool {
 
 // GF-10012 — Creates WebAuthn registration options while excluding existing credentials.
 func (rp *WebAuthnRP) RegistrationOptions(user WebAuthnUser) (map[string]any, webauthn.SessionData, error) {
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG("", global.SRNWA2, "RegistrationOptions start", map[string]interface{}{"user": user.Name})
+	}
 	if !rp.registrationPolicyEnabled() {
 		return nil, webauthn.SessionData{}, ErrAttestationPolicyDenied
 	}
@@ -238,6 +245,9 @@ func (rp *WebAuthnRP) registrationPolicyEnabled() bool {
 
 // GF-10013 — Verifies the registration response, credential ID, format, and attestation trust.
 func (rp *WebAuthnRP) VerifyRegistration(user WebAuthnUser, session webauthn.SessionData, credentialJSON []byte) (*webauthn.Credential, WebAuthnAttestationResult, error) {
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG("", global.SRNWA3, "VerifyRegistration start", map[string]interface{}{"user": user.Name})
+	}
 	parsed, err := protocol.ParseCredentialCreationResponseBytes(credentialJSON)
 	if err != nil {
 		return nil, WebAuthnAttestationResult{}, err
@@ -270,6 +280,9 @@ func (rp *WebAuthnRP) VerifyRegistration(user WebAuthnUser, session webauthn.Ses
 
 // GF-10014 — Creates an assertion challenge for an enrolled WebAuthn credential.
 func (rp *WebAuthnRP) AuthenticationOptions(user WebAuthnUser) (map[string]any, webauthn.SessionData, error) {
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG("", global.SRNWA4, "AuthenticationOptions start", map[string]interface{}{"user": user.Name})
+	}
 	assertion, session, err := rp.server.BeginLogin(user)
 	if err != nil {
 		return nil, webauthn.SessionData{}, err
@@ -281,6 +294,9 @@ func (rp *WebAuthnRP) AuthenticationOptions(user WebAuthnUser) (map[string]any, 
 
 // GF-10015 — Verifies the WebAuthn assertion and returns the updated credential state.
 func (rp *WebAuthnRP) VerifyAuthentication(user WebAuthnUser, session webauthn.SessionData, credentialJSON []byte) (*webauthn.Credential, error) {
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG("", global.SRNWA5, "VerifyAuthentication start", map[string]interface{}{"user": user.Name})
+	}
 	parsed, err := protocol.ParseCredentialRequestResponseBytes(credentialJSON)
 	if err != nil {
 		return nil, err
