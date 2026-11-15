@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -25,29 +26,73 @@ func NewProject(db *gorm.DB) Project {
 }
 
 func (rcvr *projectRepository) Project(ctx context.Context, id uuid.UUID) (model.Project, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPR1, "Project start", map[string]interface{}{"id": id})
+	}
 	var v model.Project
 	e := rcvr.db.WithContext(ctx).Where("id = ? AND status = 'active'", id).First(&v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNPR2, "Project not found or error", map[string]interface{}{"error": e})
+		}
+	}
 	return v, mapNotFound(e)
 }
 
 func (rcvr *projectRepository) ProjectByIssuer(ctx context.Context, issuer string) (model.Project, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPR3, "ProjectByIssuer start", map[string]interface{}{"issuer": issuer})
+	}
 	var v model.Project
 	e := rcvr.db.WithContext(ctx).Where("issuer = ? AND status = 'active'", issuer).First(&v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNPR4, "ProjectByIssuer not found or error", map[string]interface{}{"error": e})
+		}
+	}
 	return v, mapNotFound(e)
 }
 
 func (rcvr *projectRepository) ProjectBySlug(ctx context.Context, slug string) (model.Project, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPR5, "ProjectBySlug start", map[string]interface{}{"slug": slug})
+	}
 	var v model.Project
 	e := rcvr.db.WithContext(ctx).Where("slug=?", slug).First(&v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNPR6, "ProjectBySlug not found or error", map[string]interface{}{"error": e})
+		}
+	}
 	return v, mapNotFound(e)
 }
 
 func (rcvr *projectRepository) PutProject(ctx context.Context, v *model.Project) error {
-	return rcvr.db.WithContext(ctx).Save(v).Error
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPR7, "PutProject start", map[string]interface{}{"id": v.ID})
+	}
+	e := rcvr.db.WithContext(ctx).Save(v).Error
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNPR8, "PutProject error", map[string]interface{}{"error": e})
+		}
+	}
+	return e
 }
 
 func (rcvr *projectRepository) Projects(ctx context.Context, principal uuid.UUID) ([]model.Project, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPR9, "Projects start", map[string]interface{}{"principal": principal})
+	}
 	var v []model.Project
 	e := rcvr.db.WithContext(ctx).Table("projects p").Select("p.*").Joins("JOIN role_bindings r ON r.project_id=p.id AND r.scope='project'").Where("r.principal_id=? AND p.status='active'", principal).Order("p.slug").Scan(&v).Error
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNPR10, "Projects done", map[string]interface{}{"count": len(v), "error": e})
+	}
 	return v, e
 }

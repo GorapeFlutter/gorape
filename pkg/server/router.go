@@ -93,6 +93,7 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 
 	// -- Repositories --
 	store := repository.NewStore(conf.DBConnection)
+	repository.LoggerInstance = share.GetServerLogger()
 
 	// -- Usecases --
 	service := usecase.NewService(store, tokens, challenges, registry)

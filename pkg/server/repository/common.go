@@ -6,11 +6,20 @@ import (
 	"fmt"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
+	"github.com/Gorapeflutter/gorape/pkg/global"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 var ErrNotFound = errors.New("not found")
+
+// Logger is a minimal logging interface to avoid import cycles with share.
+type Logger interface {
+	DEBUG(requestID string, mcode global.MCode, optionalMessage string, fields ...map[string]interface{})
+}
+
+// LoggerInstance is set during router initialization.
+var LoggerInstance Logger
 
 type StoreInterface interface {
 	DB() *gorm.DB
