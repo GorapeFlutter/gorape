@@ -543,6 +543,7 @@ func (uc *passkeyDeviceUsecase) VerifyProofRequest(ctx context.Context, auth mod
 		DisplayName:        "Gorape user",
 		Credentials:        []webauthn.Credential{credential},
 	}
+	pending.Session.AllowedCredentialIDs = [][]byte{credential.ID}
 	updated, err := uc.rp.VerifyAuthentication(user, pending.Session, q.Credential)
 	if err != nil {
 		return response.ProofRequestVerifyResult{}, err
