@@ -56,6 +56,7 @@ func calculateMaxCodeLength() int {
 		SRNCR1, SRNCR2,
 		SRNUR1, SRNUR2,
 		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
+		SRNDR1, SRNDR2, SRNDR3, SRNDR4, SRNDR5, SRNDR6, SRNDR7, SRNDR8, SRNDR9, SRNDR10, SRNDR11, SRNDR12, SRNDR13, SRNDR14, SRNDR15, SRNDR16, SRNDR17, SRNDR18, SRNDR19, SRNDR20, SRNDR21, SRNDR22, SRNDR23,
 		SRNMR1, SRNMR2,
 		SRNRR1, SRNRR2,
 		SRNRSR1, SRNRSR2,
@@ -198,6 +199,31 @@ var (
 	SRNGR8  = MCode{"SRNGR8", "UpdateGroup error"}
 	SRNGR9  = MCode{"SRNGR9", "DeleteGroup start"}
 	SRNGR10 = MCode{"SRNGR10", "DeleteGroup error"}
+
+	// DeviceRepository related
+	SRNDR1  = MCode{"SRNDR1", "Devices start"}
+	SRNDR2  = MCode{"SRNDR2", "Devices done"}
+	SRNDR3  = MCode{"SRNDR3", "Device start"}
+	SRNDR4  = MCode{"SRNDR4", "Device not found or error"}
+	SRNDR5  = MCode{"SRNDR5", "DeviceKey start"}
+	SRNDR6  = MCode{"SRNDR6", "DeviceKey not found or error"}
+	SRNDR7  = MCode{"SRNDR7", "UpdateCredentialData start"}
+	SRNDR8  = MCode{"SRNDR8", "UpdateCredentialData error"}
+	SRNDR9  = MCode{"SRNDR9", "UpdateCredentialData not found"}
+	SRNDR10 = MCode{"SRNDR10", "RegisterDevice start"}
+	SRNDR11 = MCode{"SRNDR11", "RegisterDevice error"}
+	SRNDR12 = MCode{"SRNDR12", "RevokeDevice start"}
+	SRNDR13 = MCode{"SRNDR13", "RevokeDevice error"}
+	SRNDR14 = MCode{"SRNDR14", "MarkDeviceVerified start"}
+	SRNDR15 = MCode{"SRNDR15", "MarkDeviceVerified error"}
+	SRNDR16 = MCode{"SRNDR16", "GroupDevices start"}
+	SRNDR17 = MCode{"SRNDR17", "GroupDevices done"}
+	SRNDR18 = MCode{"SRNDR18", "BindDevice start"}
+	SRNDR19 = MCode{"SRNDR19", "BindDevice error"}
+	SRNDR20 = MCode{"SRNDR20", "UnbindDevice start"}
+	SRNDR21 = MCode{"SRNDR21", "UnbindDevice error"}
+	SRNDR22 = MCode{"SRNDR22", "DeviceGroupIDs start"}
+	SRNDR23 = MCode{"SRNDR23", "DeviceGroupIDs done"}
 
 	// NewMemberRepository related
 	SRNMR1 = MCode{"SRNMR1", "NewMemberRepository start"}
