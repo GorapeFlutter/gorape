@@ -55,6 +55,7 @@ func calculateMaxCodeLength() int {
 		SRNRC1, SRNRC2, SRNRC3, SRNRC4, SRNRC5,
 		SRNCR1, SRNCR2,
 		SRNUR1, SRNUR2,
+		SRNUPR1, SRNUPR2, SRNUPR3, SRNUPR4, SRNUPR5, SRNUPR6,
 		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
 		SRNDR1, SRNDR2, SRNDR3, SRNDR4, SRNDR5, SRNDR6, SRNDR7, SRNDR8, SRNDR9, SRNDR10, SRNDR11, SRNDR12, SRNDR13, SRNDR14, SRNDR15, SRNDR16, SRNDR17, SRNDR18, SRNDR19, SRNDR20, SRNDR21, SRNDR22, SRNDR23,
 		SRNMR1, SRNMR2,
@@ -187,6 +188,14 @@ var (
 	// NewUserRepository related
 	SRNUR1 = MCode{"SRNUR1", "NewUserRepository start"}
 	SRNUR2 = MCode{"SRNUR2", "UserRepository created"}
+
+	// PrincipalRepository related
+	SRNUPR1 = MCode{"SRNUPR1", "EnsurePrincipal start"}
+	SRNUPR2 = MCode{"SRNUPR2", "EnsurePrincipal invalid identity"}
+	SRNUPR3 = MCode{"SRNUPR3", "EnsurePrincipal create error"}
+	SRNUPR4 = MCode{"SRNUPR4", "EnsurePrincipal load error"}
+	SRNUPR5 = MCode{"SRNUPR5", "PrincipalBySubject start"}
+	SRNUPR6 = MCode{"SRNUPR6", "PrincipalBySubject not found or error"}
 
 	// NewGroupRepository related
 	SRNGR1  = MCode{"SRNGR1", "NewGroupRepository start"}
