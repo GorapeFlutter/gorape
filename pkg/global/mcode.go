@@ -55,7 +55,7 @@ func calculateMaxCodeLength() int {
 		SRNRC1, SRNRC2, SRNRC3, SRNRC4, SRNRC5,
 		SRNCR1, SRNCR2,
 		SRNUR1, SRNUR2,
-		SRNGR1, SRNGR2,
+		SRNGR1, SRNGR2, SRNGR3, SRNGR4, SRNGR5, SRNGR6, SRNGR7, SRNGR8, SRNGR9, SRNGR10,
 		SRNMR1, SRNMR2,
 		SRNRR1, SRNRR2,
 		SRNRSR1, SRNRSR2,
@@ -188,8 +188,16 @@ var (
 	SRNUR2 = MCode{"SRNUR2", "UserRepository created"}
 
 	// NewGroupRepository related
-	SRNGR1 = MCode{"SRNGR1", "NewGroupRepository start"}
-	SRNGR2 = MCode{"SRNGR2", "GroupRepository created"}
+	SRNGR1  = MCode{"SRNGR1", "NewGroupRepository start"}
+	SRNGR2  = MCode{"SRNGR2", "GroupRepository created"}
+	SRNGR3  = MCode{"SRNGR3", "Group start"}
+	SRNGR4  = MCode{"SRNGR4", "Group not found or error"}
+	SRNGR5  = MCode{"SRNGR5", "CreateGroup start"}
+	SRNGR6  = MCode{"SRNGR6", "CreateGroup error"}
+	SRNGR7  = MCode{"SRNGR7", "UpdateGroup start"}
+	SRNGR8  = MCode{"SRNGR8", "UpdateGroup error"}
+	SRNGR9  = MCode{"SRNGR9", "DeleteGroup start"}
+	SRNGR10 = MCode{"SRNGR10", "DeleteGroup error"}
 
 	// NewMemberRepository related
 	SRNMR1 = MCode{"SRNMR1", "NewMemberRepository start"}
