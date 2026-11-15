@@ -43,9 +43,14 @@ Application:
           url: "https://mds.fidoalliance.org/"
           accept_legal_header: false
     webauthn:
-      rp_id: localhost
+      # Fixed Android RP ID; the matching DAL statement is hosted by the
+      # Gorapeflutter organization Pages site. Keycloak remains a separate RP.
+      rp_id: gorapeflutter.github.io
       rp_display_name: Gorape
       rp_origins:
+        - https://gorapeflutter.github.io
+        - https://local.gorapeflutter.github.io:5173
+        - https://local.gorapeflutter.github.io:5174
         - http://localhost:5173
         - https://localhost:5173
         - https://localhost:5174

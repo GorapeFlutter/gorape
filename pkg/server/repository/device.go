@@ -119,6 +119,9 @@ func (rcvr *deviceRepository) RegisterDevice(ctx context.Context, d *model.Devic
 		k.DeviceID = d.ID
 		k.Status = "active"
 		k.CreatedAt = now
+		if e := tx.Where("project_id=? AND key_identifier=? AND status='revoked'", d.ProjectID, k.KeyIdentifier).Delete(&model.DeviceKey{}).Error; e != nil {
+			return e
+		}
 		if e := tx.Create(k).Error; e != nil {
 			return e
 		}
@@ -152,6 +155,9 @@ func (rcvr *deviceRepository) RevokeDevice(ctx context.Context, project, id, act
 		}
 		if r.RowsAffected != 1 {
 			return ErrNotFound
+		}
+		if e := tx.Model(&model.DeviceKey{}).Where("project_id=? AND device_id=? AND status='active'", project, id).Update("status", "revoked").Error; e != nil {
+			return e
 		}
 		return tx.Create(&model.DeviceEvent{ID: uuid.New(), ProjectID: project, DeviceID: id, ActorPrincipalID: actor, EventType: "revoked", Result: "success", OccurredAt: now}).Error
 	})

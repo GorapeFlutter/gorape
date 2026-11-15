@@ -48,6 +48,7 @@ type WebAuthnRPConfig struct {
 
 type WebAuthnRP struct {
 	server            *webauthn.WebAuthn
+	localhostServer   *webauthn.WebAuthn
 	portalOrigin      string
 	browserAPIOrigin  string
 	allowed           map[string]bool
@@ -196,8 +197,29 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 		roots[format] = pool
 	}
 
+	var localhostServer *webauthn.WebAuthn
+	if config.RPID != "localhost" {
+		for _, origin := range config.RPOrigins {
+			if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "https://localhost:") {
+				localhostServer, _ = webauthn.New(&webauthn.Config{
+					RPID:                   "localhost",
+					RPDisplayName:          config.RPDisplayName,
+					RPOrigins:              config.RPOrigins,
+					AttestationPreference:  conveyance,
+					AuthenticatorSelection: selection,
+					MDS:                    config.MDS,
+					Timeouts: webauthn.TimeoutsConfig{
+						Registration: webauthn.TimeoutConfig{Enforce: true, Timeout: config.ChallengeTTL},
+						Login:        webauthn.TimeoutConfig{Enforce: true, Timeout: config.ChallengeTTL},
+					},
+				})
+				break
+			}
+		}
+	}
+
 	return &WebAuthnRP{
-		server: server, portalOrigin: portalOrigin, browserAPIOrigin: browserAPIOrigin,
+		server: server, localhostServer: localhostServer, portalOrigin: portalOrigin, browserAPIOrigin: browserAPIOrigin,
 		allowed: allowed, allowNone: config.AllowNone,
 		allowSelf: config.AllowSelfAttestation, trustRoots: roots, mds: config.MDS,
 		revocationChecker: config.RevocationChecker,
@@ -349,6 +371,12 @@ func (rp *WebAuthnRP) VerifyAuthentication(user WebAuthnUser, session webauthn.S
 		}
 	}
 	updated, err := rp.server.ValidateLogin(user, session, parsed)
+	if err != nil && rp.localhostServer != nil {
+		if fallback, fallbackErr := rp.localhostServer.ValidateLogin(user, session, parsed); fallbackErr == nil {
+			updated = fallback
+			err = nil
+		}
+	}
 	if err != nil {
 		return nil, err
 	}

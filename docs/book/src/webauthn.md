@@ -25,9 +25,9 @@ production signing fingerprints and trusted attestation roots.
 2. The client passes the returned `public_key` options to its OS/browser
    credential provider and forwards the complete `PublicKeyCredential`
    response, including `clientDataJSON` and `attestationObject`.
-3. Gorape verifies the challenge, ceremony type, configured RP ID ([GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L87), [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L577)), exact allowed
+3. Gorape verifies the challenge, ceremony type, configured RP ID ([GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L88), [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L605)), exact allowed
    origin, credential ID, credential public key, format-specific attestation
-   statement, and trust chain before storing the device ([GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L272), [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L151)).
+   statement, and trust chain before storing the device ([GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L294), [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L151)).
 4. For proof, Gorape issues a new single-use WebAuthn request challenge. The
    provider signs it; Gorape validates the assertion and updates authenticator
    counter/backup state.

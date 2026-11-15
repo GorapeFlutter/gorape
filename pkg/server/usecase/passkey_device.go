@@ -246,7 +246,11 @@ func (uc *passkeyDeviceUsecase) verifyRegistrationChallenge(
 	if err != nil {
 		return response.PasskeyRegistrationResult{}, err
 	}
-	algorithm := fmt.Sprintf("COSE-%d", credential.Attestation.PublicKeyAlgorithm)
+	coseAlg := credential.Attestation.PublicKeyAlgorithm
+	if coseAlg == 0 {
+		coseAlg = -7
+	}
+	algorithm := fmt.Sprintf("COSE-%d", coseAlg)
 	credentialData, err := marshalCredentialWithoutAttestation(credential)
 	if err != nil {
 		return response.PasskeyRegistrationResult{}, err
