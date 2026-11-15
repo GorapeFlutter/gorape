@@ -14,6 +14,7 @@ import (
 
 type Principal interface {
 	EnsurePrincipal(ctx context.Context, project model.Project, issuer, subject string) (model.Principal, error)
+	Principal(ctx context.Context, project, id uuid.UUID) (model.Principal, error)
 	PrincipalBySubject(ctx context.Context, project uuid.UUID, subject string) (model.Principal, error)
 }
 
@@ -52,6 +53,12 @@ func (rcvr *principalRepository) EnsurePrincipal(ctx context.Context, project mo
 		}
 	}
 	return found, e
+}
+
+func (rcvr *principalRepository) Principal(ctx context.Context, project, id uuid.UUID) (model.Principal, error) {
+	var v model.Principal
+	e := rcvr.db.WithContext(ctx).Where("project_id=? AND id=?", project, id).First(&v).Error
+	return v, mapNotFound(e)
 }
 
 func (rcvr *principalRepository) PrincipalBySubject(ctx context.Context, project uuid.UUID, subject string) (model.Principal, error) {

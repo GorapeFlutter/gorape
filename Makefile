@@ -15,6 +15,7 @@ COMPOSE = docker compose --project-directory . \
 	-f docker/redis.yaml \
 	-f docker/keycloak.yaml \
 	-f docker/server.yaml \
+	-f docker/sample.yaml \
 	-f docker/localstack.yaml
 
 GO      ?= go
@@ -107,6 +108,14 @@ dev-api:
 # App server container (build image and start, dependencies unchanged)
 svr-up:
 	$(COMPOSE) up -d --build --no-deps server
+
+# Sample external service backend + Vue web container
+sample-up:
+	$(COMPOSE) up -d --build --no-deps sample-backend sample-web
+
+sample-down:
+	$(COMPOSE) stop sample-web sample-backend
+	$(COMPOSE) rm -f -v sample-web sample-backend
 
 # Stop and remove the app server container only
 svr-down:

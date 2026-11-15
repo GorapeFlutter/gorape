@@ -12,21 +12,20 @@ import (
 
 const authContextKey = "gorape_auth"
 
-// GF-10003 — Validates a bearer access token and attaches project auth context.
+// GF-10003 — Validates an access token and attaches project auth context.
 func Authenticate(s *usecase.Service, byIssuer bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		h := c.GetHeader("Authorization")
-		if !strings.HasPrefix(h, "Bearer ") {
-			abortAuth(c, errors.New("Bearer access token required"))
+		raw, ok := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
+		if !ok || strings.TrimSpace(raw) == "" {
+			abortAuth(c, errors.New("bearer token required"))
 			return
 		}
-		raw := strings.TrimPrefix(h, "Bearer ")
 		var a model.AuthContext
 		var e error
 		if byIssuer {
-			a, e = s.AuthenticateIssuer(c.Request.Context(), raw)
+			a, e = s.AuthenticateIssuer(c.Request.Context(), strings.TrimSpace(raw))
 		} else {
-			a, e = s.Authenticate(c.Request.Context(), c.Param("projectId"), raw)
+			a, e = s.Authenticate(c.Request.Context(), c.Param("projectId"), strings.TrimSpace(raw))
 		}
 		if e != nil {
 			abortAuth(c, e)
@@ -43,12 +42,12 @@ func Authenticate(s *usecase.Service, byIssuer bool) gin.HandlerFunc {
 // GF-10004 — Validates platform-issuer tokens for provisioning routes.
 func AuthenticatePlatform(s *usecase.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		h := c.GetHeader("Authorization")
-		if !strings.HasPrefix(h, "Bearer ") {
-			abortAuth(c, errors.New("Bearer access token required"))
+		raw, ok := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
+		if !ok || strings.TrimSpace(raw) == "" {
+			abortAuth(c, errors.New("bearer token required"))
 			return
 		}
-		a, e := s.AuthenticatePlatform(c.Request.Context(), strings.TrimPrefix(h, "Bearer "))
+		a, e := s.AuthenticatePlatform(c.Request.Context(), strings.TrimSpace(raw))
 		if e != nil {
 			abortAuth(c, e)
 			return

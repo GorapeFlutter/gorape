@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -49,14 +50,43 @@ type OIDCConfig struct {
 	ProviderURLs   map[string]string `yaml:"provider_urls"`
 }
 type AttestationConfig struct {
-	AndroidTrustAnchors []string                  `yaml:"android_trust_anchors"`
-	WebAuthn            WebAuthnAttestationConfig `yaml:"webauthn"`
+	AndroidTrustAnchors []string                       `yaml:"android_trust_anchors"`
+	AndroidPolicy       AndroidAttestationPolicyConfig `yaml:"android_policy"`
+	Revocation          AttestationRevocationConfig    `yaml:"revocation"`
+	WebAuthn            WebAuthnAttestationConfig      `yaml:"webauthn"`
+}
+type AndroidAttestationPolicyConfig struct {
+	Applications            map[string][]string `yaml:"applications"`
+	MinimumOSVersion        int                 `yaml:"minimum_os_version"`
+	MinimumOSPatchLevel     int                 `yaml:"minimum_os_patch_level"`
+	MinimumVendorPatchLevel int                 `yaml:"minimum_vendor_patch_level"`
+	MinimumBootPatchLevel   int                 `yaml:"minimum_boot_patch_level"`
 }
 type WebAuthnAttestationConfig struct {
 	AllowedFormats       []string            `yaml:"allowed_formats"`
 	AllowNone            bool                `yaml:"allow_none"`
 	AllowSelfAttestation bool                `yaml:"allow_self_attestation"`
 	TrustAnchors         map[string][]string `yaml:"trust_anchors"`
+	MDS                  WebAuthnMDSConfig   `yaml:"mds"`
+}
+type WebAuthnMDSConfig struct {
+	Enabled           bool   `yaml:"enabled"`
+	CacheFile         string `yaml:"cache_file"`
+	URL               string `yaml:"url"`
+	AcceptLegalHeader bool   `yaml:"accept_legal_header"`
+}
+type AttestationRevocationConfig struct {
+	Enabled      bool          `yaml:"enabled"`
+	TimeoutText  string        `yaml:"timeout"`
+	CacheTTLText string        `yaml:"cache_ttl"`
+	Timeout      time.Duration `yaml:"-"`
+	CacheTTL     time.Duration `yaml:"-"`
+}
+type AuthenticationAssuranceConfig struct {
+	Enabled        bool          `yaml:"enabled"`
+	RequiredACR    string        `yaml:"required_acr"`
+	MaxAuthAgeText string        `yaml:"max_auth_age"`
+	MaxAuthAge     time.Duration `yaml:"-"`
 }
 type WebAuthnConfig struct {
 	RPID                  string   `yaml:"rp_id"`
@@ -82,20 +112,21 @@ type KeycloakConfig struct {
 	Password     string `yaml:"password"`
 }
 type Server struct {
-	Port             int               `yaml:"port"`
-	TLSPort          int               `yaml:"tls_port"`
-	TLSCertFile      string            `yaml:"tls_cert_file"`
-	TLSKeyFile       string            `yaml:"tls_key_file"`
-	LogLevel         string            `yaml:"log_level"`
-	Redis            RedisConfig       `yaml:"redis"`
-	OIDC             OIDCConfig        `yaml:"oidc"`
-	ChallengeTTL     time.Duration     `yaml:"-"`
-	ChallengeTTLText string            `yaml:"challenge_ttl"`
-	Attestation      AttestationConfig `yaml:"attestation"`
-	WebAuthn         WebAuthnConfig    `yaml:"webauthn"`
-	WebOrigins       []string          `yaml:"web_origins"`
-	Platform         PlatformConfig    `yaml:"platform"`
-	Keycloak         KeycloakConfig    `yaml:"keycloak"`
+	Port                    int                           `yaml:"port"`
+	TLSPort                 int                           `yaml:"tls_port"`
+	TLSCertFile             string                        `yaml:"tls_cert_file"`
+	TLSKeyFile              string                        `yaml:"tls_key_file"`
+	LogLevel                string                        `yaml:"log_level"`
+	Redis                   RedisConfig                   `yaml:"redis"`
+	OIDC                    OIDCConfig                    `yaml:"oidc"`
+	ChallengeTTL            time.Duration                 `yaml:"-"`
+	ChallengeTTLText        string                        `yaml:"challenge_ttl"`
+	Attestation             AttestationConfig             `yaml:"attestation"`
+	AuthenticationAssurance AuthenticationAssuranceConfig `yaml:"authentication_assurance"`
+	WebAuthn                WebAuthnConfig                `yaml:"webauthn"`
+	WebOrigins              []string                      `yaml:"web_origins"`
+	Platform                PlatformConfig                `yaml:"platform"`
+	Keycloak                KeycloakConfig                `yaml:"keycloak"`
 }
 type ClientOIDCConfig struct {
 	IssuerURL   string   `yaml:"issuer_url"`
@@ -168,6 +199,39 @@ func finishConfig(cfg YamlConfig) *BaseConfig {
 		log.Fatalf("configuration: challenge_ttl must be between 1m and 15m")
 	}
 	cfg.Application.Server.ChallengeTTL = ttl
+	if cfg.Application.Server.Attestation.Revocation.TimeoutText == "" {
+		cfg.Application.Server.Attestation.Revocation.TimeoutText = "5s"
+	}
+	revocationTimeout, revocationErr := time.ParseDuration(cfg.Application.Server.Attestation.Revocation.TimeoutText)
+	if revocationErr != nil || revocationTimeout < time.Second || revocationTimeout > 30*time.Second {
+		log.Fatalf("configuration: attestation.revocation.timeout must be between 1s and 30s")
+	}
+	cfg.Application.Server.Attestation.Revocation.Timeout = revocationTimeout
+	if cfg.Application.Server.Attestation.Revocation.CacheTTLText == "" {
+		cfg.Application.Server.Attestation.Revocation.CacheTTLText = "1m"
+	}
+	revocationCacheTTL, revocationErr := time.ParseDuration(cfg.Application.Server.Attestation.Revocation.CacheTTLText)
+	if revocationErr != nil || revocationCacheTTL < time.Minute || revocationCacheTTL > 7*24*time.Hour {
+		log.Fatalf("configuration: attestation.revocation.cache_ttl must be between 1m and 7d")
+	}
+	cfg.Application.Server.Attestation.Revocation.CacheTTL = revocationCacheTTL
+	authAssurance := &cfg.Application.Server.AuthenticationAssurance
+	if !authAssurance.Enabled && (authAssurance.RequiredACR != "" || authAssurance.MaxAuthAgeText != "") {
+		log.Fatalf("configuration: authentication_assurance fields require enabled: true")
+	}
+	if authAssurance.Enabled {
+		if strings.TrimSpace(authAssurance.RequiredACR) == "" {
+			log.Fatalf("configuration: authentication_assurance.required_acr is required when enabled")
+		}
+		if authAssurance.MaxAuthAgeText == "" {
+			authAssurance.MaxAuthAgeText = "5m"
+		}
+		maxAuthAge, ageErr := time.ParseDuration(authAssurance.MaxAuthAgeText)
+		if ageErr != nil || maxAuthAge < time.Minute || maxAuthAge > 24*time.Hour {
+			log.Fatalf("configuration: authentication_assurance.max_auth_age must be between 1m and 24h")
+		}
+		authAssurance.MaxAuthAge = maxAuthAge
+	}
 	if cfg.Application.Server.Redis.ChallengePrefix == "" {
 		cfg.Application.Server.Redis.ChallengePrefix = "gorape:challenge:"
 	}

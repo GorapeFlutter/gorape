@@ -6,8 +6,8 @@
 - Project境界をAPI、query、複合外部キーで検証
 - 未実装Verifierはfail closed
 - Gorape RPのWebAuthn registrationでRP ID、origin、challenge、credential ID/public keyを検証
-- Legacy device registration、proof、passkey registration/assertionは`amr: ["passkey"]`を要求 ([GF-10008](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/device.go#L124))
-- Redis challengeはpurpose、project、subject、deviceへ結び付け、atomicに一度だけ消費 ([GF-10009](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/challenge.go#L70))
+- Legacy device registration、proof、passkey registration/assertionは`amr: ["passkey"]`を要求 ([GF-10008](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/device.go#L125))
+- Redis challengeはpurpose、project、subject、deviceへ結び付け、atomicに一度だけ消費 ([GF-10009](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/challenge.go#L75))
 - WebAuthn attestationは許可formatとformat別trust anchorを要求し、既定はnoneを拒否
 - proofは単回challengeに対するWebAuthn assertionを検証し、raw attestation evidenceは保存credentialから除去
 

@@ -99,7 +99,6 @@ func (rcvr *Store) Device(ctx context.Context, project, id uuid.UUID) (model.Dev
 func (rcvr *Store) DeviceKey(ctx context.Context, project, device uuid.UUID) (model.DeviceKey, error) {
 	return rcvr.device.DeviceKey(ctx, project, device)
 }
-
 func (rcvr *Store) UpdateCredentialData(ctx context.Context, project, device uuid.UUID, data []byte) error {
 	return rcvr.device.UpdateCredentialData(ctx, project, device, data)
 }
@@ -160,6 +159,9 @@ func (rcvr *Store) DeleteRoleBinding(ctx context.Context, project, binding uuid.
 // Principal methods
 func (rcvr *Store) EnsurePrincipal(ctx context.Context, project model.Project, issuer, subject string) (model.Principal, error) {
 	return rcvr.principal.EnsurePrincipal(ctx, project, issuer, subject)
+}
+func (rcvr *Store) Principal(ctx context.Context, project, id uuid.UUID) (model.Principal, error) {
+	return rcvr.principal.Principal(ctx, project, id)
 }
 func (rcvr *Store) PrincipalBySubject(ctx context.Context, project uuid.UUID, subject string) (model.Principal, error) {
 	return rcvr.principal.PrincipalBySubject(ctx, project, subject)

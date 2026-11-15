@@ -3,9 +3,10 @@ package model
 type Role string
 
 const (
-	RoleViewer Role = "viewer"
-	RoleEditor Role = "editor"
-	RoleAdmin  Role = "admin"
+	RoleViewer  Role = "viewer"
+	RoleEditor  Role = "editor"
+	RoleAdmin   Role = "admin"
+	RoleService Role = "service"
 )
 
 func (rcvr Role) Valid() bool { return rcvr == RoleViewer || rcvr == RoleEditor || rcvr == RoleAdmin }

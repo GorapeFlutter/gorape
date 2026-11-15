@@ -1,0 +1,41 @@
+services:
+  sample-backend:
+    build:
+      context: ../gf-sample-backend
+      dockerfile: Dockerfile
+    container_name: gorape-sample-backend
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    environment:
+      LISTEN_ADDR: ":8090"
+      GORAPE_BASE_URL: "http://server:8000"
+      GORAPE_PROJECT_SLUG: "gorape"
+      SERVICE_ID: "gorape-sample-service"
+      KEYCLOAK_TOKEN_URL: "http://keycloak:8080/realms/gorape/protocol/openid-connect/token"
+      KEYCLOAK_PUBLIC_URL: "http://localhost:8080/realms/gorape"
+      KEYCLOAK_CLIENT_ID: "gorape-sample-service"
+      KEYCLOAK_CLIENT_SECRET: "gorape-sample-service-secret"
+      WEB_OIDC_CLIENT_ID: "gorape-sample-web"
+      ALLOWED_CORS_ORIGINS: "http://localhost:5173,https://localhost:5173,https://localhost:5174,http://127.0.0.1:5173,https://local.gorapeflutter.github.io:5173,https://local.gorapeflutter.github.io:5174,https://gorapeflutter.github.io"
+    ports:
+      - "8090:8090"
+    depends_on:
+      - server
+      - keycloak
+    networks:
+      - gorape-network
+    restart: unless-stopped
+
+  sample-web:
+    build:
+      context: ../gf-sample-web
+      dockerfile: Dockerfile
+    container_name: gorape-sample-web
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    ports:
+      - "5173:80"
+      - "5174:443"
+    depends_on:
+      - sample-backend
+    networks:
+      - gorape-network
+    restart: unless-stopped

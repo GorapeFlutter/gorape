@@ -40,12 +40,48 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	if err != nil {
 		log.Fatalf("Redis initialization failed: %v", err)
 	}
-	registry, err := repository.NewVerifierRegistry(conf.YamlConfig.Application.Server.Attestation.AndroidTrustAnchors)
+	attestationConfig := conf.YamlConfig.Application.Server.Attestation
+	mdsConfig := attestationConfig.WebAuthn.MDS
+	var revocationChecker *repository.CertificateRevocationChecker
+	if attestationConfig.Revocation.Enabled || mdsConfig.Enabled {
+		revocationChecker, err = repository.NewCertificateRevocationChecker(
+			attestationConfig.Revocation.Timeout,
+			attestationConfig.Revocation.CacheTTL,
+		)
+		if err != nil {
+			log.Fatalf("certificate revocation checker initialization failed: %v", err)
+		}
+	}
+	registry, err := repository.NewVerifierRegistry(
+		attestationConfig.AndroidTrustAnchors,
+		repository.AndroidAttestationPolicy{
+			Applications:            attestationConfig.AndroidPolicy.Applications,
+			MinimumOSVersion:        attestationConfig.AndroidPolicy.MinimumOSVersion,
+			MinimumOSPatchLevel:     attestationConfig.AndroidPolicy.MinimumOSPatchLevel,
+			MinimumVendorPatchLevel: attestationConfig.AndroidPolicy.MinimumVendorPatchLevel,
+			MinimumBootPatchLevel:   attestationConfig.AndroidPolicy.MinimumBootPatchLevel,
+			RevocationChecker:       revocationChecker,
+		},
+	)
 	if err != nil {
 		log.Fatalf("attestation initialization failed: %v", err)
 	}
 	var webAuthnRP *repository.WebAuthnRP
 	webAuthnConfig := conf.YamlConfig.Application.Server.WebAuthn
+	var mdsProvider *repository.FidoMDSProvider
+	if mdsConfig.Enabled {
+		if webAuthnConfig.RPID == "" && len(webAuthnConfig.RPOrigins) == 0 {
+			log.Fatal("FIDO MDS is enabled but the WebAuthn RP is not configured")
+		}
+		mdsProvider, err = repository.NewFidoMDSProvider(repository.FidoMDSConfig{
+			URL:               mdsConfig.URL,
+			CacheFile:         mdsConfig.CacheFile,
+			AcceptLegalHeader: mdsConfig.AcceptLegalHeader,
+		})
+		if err != nil {
+			log.Fatalf("FIDO MDS initialization failed: %v", err)
+		}
+	}
 	if webAuthnConfig.RPID != "" || len(webAuthnConfig.RPOrigins) != 0 {
 		trustAnchors := conf.YamlConfig.Application.Server.Attestation.WebAuthn.TrustAnchors
 		if trustAnchors == nil {
@@ -66,6 +102,8 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 			AllowNone:             conf.YamlConfig.Application.Server.Attestation.WebAuthn.AllowNone,
 			AllowSelfAttestation:  conf.YamlConfig.Application.Server.Attestation.WebAuthn.AllowSelfAttestation,
 			TrustAnchors:          trustAnchors,
+			MDS:                   mdsProvider,
+			RevocationChecker:     revocationChecker,
 			ChallengeTTL:          conf.YamlConfig.Application.Server.ChallengeTTL,
 		})
 		if err != nil {
@@ -90,13 +128,19 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 		conf.YamlConfig.Application.Server.Redis.ChallengePrefix,
 		conf.YamlConfig.Application.Server.ChallengeTTL,
 	)
+	store := repository.NewStore(conf.DBConnection)
 
 	// -- Repositories --
-	store := repository.NewStore(conf.DBConnection)
 	repository.LoggerInstance = share.GetServerLogger()
 
 	// -- Usecases --
 	service := usecase.NewService(store, tokens, challenges, registry)
+	authAssuranceConfig := conf.YamlConfig.Application.Server.AuthenticationAssurance
+	service.ConfigureAuthenticationAssurance(usecase.AuthenticationAssurancePolicy{
+		Enabled:     authAssuranceConfig.Enabled,
+		RequiredACR: authAssuranceConfig.RequiredACR,
+		MaxAuthAge:  authAssuranceConfig.MaxAuthAge,
+	})
 	service.ConfigureWebAuthn(webAuthnRP)
 	if platformCfg.Issuer != "" {
 		service.ConfigurePlatform(platformCfg.Issuer, platformCfg.AdminRoles)
@@ -189,6 +233,8 @@ func InitRouter(conf config.BaseConfig) *gin.Engine {
 	p.POST("/devices/:deviceId/verify", deviceCtrl.ProofVerify)
 	p.POST("/devices/:deviceId/passkeys/authentication/options", deviceCtrl.PasskeyAuthenticationOptions)
 	p.POST("/devices/:deviceId/passkeys/authentication/verify", deviceCtrl.PasskeyAuthenticationVerify)
+	p.POST("/proof-requests", deviceCtrl.CreateProofRequest)
+	p.POST("/proof-requests/:proofId/verify", deviceCtrl.VerifyProofRequest)
 
 	// Group Device Assignments
 	p.GET("/groups/:groupId/devices", assignmentCtrl.GroupDevices)

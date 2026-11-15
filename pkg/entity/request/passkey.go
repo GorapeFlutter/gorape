@@ -45,3 +45,24 @@ type BrowserPasskeyAuthenticationVerify struct {
 	ChallengeID string          `json:"challenge_id" binding:"required"`
 	Credential  json.RawMessage `json:"credential" binding:"required"`
 }
+
+// ProofRequestCreate (GF-API-01) issues an operation-bound WebAuthn challenge
+// for an external relying service.
+type ProofRequestCreate struct {
+	ServiceID         string `json:"service_id" binding:"required"`
+	PrincipalID       string `json:"principal_id" binding:"required"`
+	OperationID       string `json:"operation_id" binding:"required"`
+	Method            string `json:"method" binding:"required"`
+	Path              string `json:"path" binding:"required"`
+	BodyHash          string `json:"body_hash" binding:"required"`
+	RequiredAssurance string `json:"required_assurance"`
+	CredentialID      string `json:"credential_id,omitempty"`
+}
+
+// ProofRequestVerify (GF-API-02) verifies a WebAuthn assertion against a
+// single-use operation-bound ProofRequest.
+type ProofRequestVerify struct {
+	ServiceID   string          `json:"service_id" binding:"required"`
+	OperationID string          `json:"operation_id" binding:"required"`
+	Credential  json.RawMessage `json:"credential" binding:"required"`
+}

@@ -21,10 +21,11 @@ type Device interface {
 }
 
 type deviceUsecase struct {
-	store      *repository.Store
-	challenges repository.ChallengeStore
-	verifiers  *repository.VerifierRegistry
-	projectUC  Project
+	store         *repository.Store
+	challenges    repository.ChallengeStore
+	verifiers     *repository.VerifierRegistry
+	projectUC     Project
+	authAssurance AuthenticationAssurancePolicy
 }
 
 func NewDevice(store *repository.Store, challenges repository.ChallengeStore, verifiers *repository.VerifierRegistry, projectUC Project) Device {
@@ -32,7 +33,7 @@ func NewDevice(store *repository.Store, challenges repository.ChallengeStore, ve
 }
 
 func (rcvr *deviceUsecase) RegistrationChallenge(ctx context.Context, a model.AuthContext, platform string) (repository.Challenge, error) {
-	if err := requirePasskeyAuthentication(a); err != nil {
+	if err := rcvr.authAssurance.RequirePasskey(a); err != nil {
 		return repository.Challenge{}, err
 	}
 	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionDeviceRegister); e != nil {
@@ -42,7 +43,7 @@ func (rcvr *deviceUsecase) RegistrationChallenge(ctx context.Context, a model.Au
 }
 
 func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthContext, q request.RegistrationVerify) (model.Device, error) {
-	if err := requirePasskeyAuthentication(a); err != nil {
+	if err := rcvr.authAssurance.RequirePasskey(a); err != nil {
 		return model.Device{}, err
 	}
 	if e := rcvr.projectUC.RequireProject(ctx, a, model.PermissionDeviceRegister); e != nil {
@@ -74,7 +75,7 @@ func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthC
 }
 
 func (rcvr *deviceUsecase) ProofChallenge(ctx context.Context, a model.AuthContext, d uuid.UUID) (repository.Challenge, error) {
-	if err := requirePasskeyAuthentication(a); err != nil {
+	if err := rcvr.authAssurance.RequirePasskey(a); err != nil {
 		return repository.Challenge{}, err
 	}
 	dev, e := rcvr.store.Device(ctx, a.Project.ID, d)
@@ -91,7 +92,7 @@ func (rcvr *deviceUsecase) ProofChallenge(ctx context.Context, a model.AuthConte
 }
 
 func (rcvr *deviceUsecase) VerifyProof(ctx context.Context, a model.AuthContext, d uuid.UUID, q request.ProofVerify) error {
-	if err := requirePasskeyAuthentication(a); err != nil {
+	if err := rcvr.authAssurance.RequirePasskey(a); err != nil {
 		return err
 	}
 	ch, e := rcvr.challenges.Consume(ctx, q.ChallengeID)

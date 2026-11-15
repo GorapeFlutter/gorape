@@ -143,6 +143,22 @@ paths:
       summary: Verify assertion and record proof of device possession
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PasskeyAuthenticationVerify'}}}}
       responses: {'200': {description: Verified}, '401': {description: Invalid assertion or expired ceremony}, '403': {description: Not authorized or passkey authentication is required}}
+  /v1/projects/{projectId}/proof-requests:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}]
+    post:
+      tags: [Passkeys]
+      operationId: createProofRequest
+      summary: Issue an operation-bound WebAuthn challenge for an external relying service (GF-API-01)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ProofRequestCreate'}}}}
+      responses: {'201': {description: Proof request options, content: {application/json: {schema: {$ref: '#/components/schemas/ProofRequestOptions'}}}}, '403': {description: Forbidden}, '422': {description: No matching credential satisfies required assurance}}
+  /v1/projects/{projectId}/proof-requests/{proofId}/verify:
+    parameters: [{$ref: '#/components/parameters/ProjectId'}, {name: proofId, in: path, required: true, schema: {type: string, format: uuid}}]
+    post:
+      tags: [Passkeys]
+      operationId: verifyProofRequest
+      summary: Verify an operation-bound WebAuthn assertion for an external relying service (GF-API-02)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ProofRequestVerify'}}}}
+      responses: {'200': {description: Verified operation proof, content: {application/json: {schema: {$ref: '#/components/schemas/ProofRequestVerifyResult'}}}}, '401': {description: Invalid or expired proof request}, '403': {description: Forbidden}}
   /v1/passkeys/browser/options:
     post:
       tags: [Passkeys]
@@ -434,5 +450,45 @@ components:
           properties:
             attestation_type: {type: string, description: WebAuthn fmt value}
             security_level: {type: string}
+            assurance_level: {type: string, enum: [hardware_attested, device_bound_unattested, standard_passkey, rejected]}
+            hardware_protected: {type: boolean}
+            backup_eligible: {type: boolean}
+            backup_state: {type: boolean}
             verification_status: {type: string, enum: [verified]}
             verifier_version: {type: string}
+    ProofRequestCreate:
+      type: object
+      required: [service_id, principal_id, operation_id, method, path, body_hash]
+      properties:
+        service_id: {type: string}
+        principal_id: {type: string, description: Gorape Principal UUID or OIDC subject}
+        operation_id: {type: string}
+        method: {type: string}
+        path: {type: string}
+        body_hash: {type: string}
+        required_assurance: {type: string, enum: [hardware_attested, device_bound_unattested, standard_passkey]}
+        credential_id: {type: string}
+    ProofRequestOptions:
+      type: object
+      required: [proof_id, expires_at, public_key_options]
+      properties:
+        proof_id: {type: string, format: uuid}
+        expires_at: {type: string, format: date-time}
+        public_key_options: {type: object}
+    ProofRequestVerify:
+      type: object
+      required: [service_id, operation_id, credential]
+      properties:
+        service_id: {type: string}
+        operation_id: {type: string}
+        credential: {type: object}
+    ProofRequestVerifyResult:
+      type: object
+      required: [verified, principal_id, device_id, credential_id, assurance_level, operation_id]
+      properties:
+        verified: {type: boolean}
+        principal_id: {type: string, format: uuid}
+        device_id: {type: string, format: uuid}
+        credential_id: {type: string}
+        assurance_level: {type: string, enum: [hardware_attested, device_bound_unattested, standard_passkey]}
+        operation_id: {type: string}

@@ -36,6 +36,9 @@ const (
 	PermissionRoleRead   Permission = "role:read"
 	PermissionRoleManage Permission = "role:manage"
 
+	PermissionProofRequest Permission = "proof:request"
+	PermissionProofVerify  Permission = "proof:verify"
+
 	PermissionProvisionManage Permission = "provision:manage"
 )
 
@@ -138,6 +141,11 @@ var BuiltinRolePermissions = map[string][]string{
 	},
 	string(RoleAdmin): {
 		"*",
+	},
+	string(RoleService): {
+		string(PermissionProjectRead),
+		string(PermissionProofRequest),
+		string(PermissionProofVerify),
 	},
 }
 

@@ -7,9 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CORS permits only configured web application origins. It deliberately does
-// not support wildcard origins or credentials because clients use Bearer
-// access tokens and send them explicitly.
+// CORS permits only configured browser-assistance origins and never uses
+// wildcard origins or ambient browser credentials.
 func CORS(origins []string) gin.HandlerFunc {
 	allowed := make(map[string]struct{}, len(origins))
 	for _, origin := range origins {

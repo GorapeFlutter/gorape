@@ -1,6 +1,9 @@
 package model
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestPasskeyAuthenticatedRequiresKeycloakAMR(t *testing.T) {
 	for _, test := range []struct {
@@ -18,5 +21,15 @@ func TestPasskeyAuthenticatedRequiresKeycloakAMR(t *testing.T) {
 				t.Fatalf("PasskeyAuthenticated() = %t, want %t", got, test.want)
 			}
 		})
+	}
+}
+
+func TestAccessTokenClaimsParseAuthenticationAssurance(t *testing.T) {
+	var claims AccessTokenClaims
+	if err := json.Unmarshal([]byte(`{"auth_time":1735689600,"acr":"gorape-passkey","amr":["passkey"]}`), &claims); err != nil {
+		t.Fatal(err)
+	}
+	if claims.AuthenticationTime != 1735689600 || claims.AuthenticationContext != "gorape-passkey" || !claims.PasskeyAuthenticated() {
+		t.Fatalf("authentication assurance claims were not retained: %+v", claims)
 	}
 }

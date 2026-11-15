@@ -251,12 +251,12 @@ func ParseKeycloakGroupPath(path, projectSlug string) (roleKey, groupSlug string
 
 func withBuiltinDefinitions(projectID uuid.UUID, definitions []model.RoleDefinition) []model.RoleDefinition {
 	seen := map[string]struct{}{}
-	out := make([]model.RoleDefinition, 0, len(definitions)+3)
+	out := make([]model.RoleDefinition, 0, len(definitions)+4)
 	for _, d := range definitions {
 		seen[d.Key] = struct{}{}
 		out = append(out, d)
 	}
-	for _, key := range []string{string(model.RoleAdmin), string(model.RoleEditor), string(model.RoleViewer)} {
+	for _, key := range []string{string(model.RoleAdmin), string(model.RoleEditor), string(model.RoleViewer), string(model.RoleService)} {
 		if _, ok := seen[key]; ok {
 			continue
 		}

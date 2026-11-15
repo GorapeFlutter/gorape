@@ -3,6 +3,7 @@ package share
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,9 @@ func TestCORSAllowsOnlyExactConfiguredOrigins(t *testing.T) {
 	router.ServeHTTP(allowed, allowedRequest)
 	if allowed.Code != http.StatusNoContent || allowed.Header().Get("Access-Control-Allow-Origin") != "https://app.example.test" {
 		t.Fatalf("allowed preflight = %d, ACAO=%q", allowed.Code, allowed.Header().Get("Access-Control-Allow-Origin"))
+	}
+	if got := allowed.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(got, "Authorization") {
+		t.Fatalf("allowed headers = %q, want Authorization", got)
 	}
 
 	denied := httptest.NewRecorder()

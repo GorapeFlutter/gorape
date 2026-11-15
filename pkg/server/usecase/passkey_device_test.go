@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/server/repository"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
@@ -90,5 +92,48 @@ func TestBrowserOptionsRejectsNonLinuxChallenge(t *testing.T) {
 	usecase := passkeyDeviceUsecase{challenges: store}
 	if _, err := usecase.BrowserOptions(context.Background(), challenge.ID); err == nil {
 		t.Fatal("browser endpoint exposed native-platform ceremony options")
+	}
+}
+
+func TestEnableCrossDeviceTransportsIncludesInternalAndHybrid(t *testing.T) {
+	options := map[string]any{
+		"allowCredentials": []any{
+			map[string]any{
+				"type":       "public-key",
+				"id":         "cred-1",
+				"transports": []any{"internal"},
+			},
+		},
+	}
+	enableCrossDeviceTransports(options)
+	list := options["allowCredentials"].([]any)
+	desc := list[0].(map[string]any)
+	transports := desc["transports"].([]string)
+	hasInternal, hasHybrid := false, false
+	for _, tr := range transports {
+		if tr == "internal" {
+			hasInternal = true
+		}
+		if tr == "hybrid" {
+			hasHybrid = true
+		}
+	}
+	if !hasInternal || !hasHybrid {
+		t.Fatalf("allowCredentials transports = %v, want internal and hybrid", transports)
+	}
+}
+
+func TestVerifyCallerServiceIdentityEnforcesTokenClientBinding(t *testing.T) {
+	auth := model.AuthContext{
+		Claims: model.AccessTokenClaims{
+			AuthorizedParty: "gorape-sample-service",
+			Subject:         "service-account-gorape-sample-service",
+		},
+	}
+	if err := verifyCallerServiceIdentity(auth, "gorape-sample-service"); err != nil {
+		t.Fatalf("matching service_id rejected: %v", err)
+	}
+	if err := verifyCallerServiceIdentity(auth, "other-service"); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("mismatched service_id error = %v, want ErrForbidden", err)
 	}
 }

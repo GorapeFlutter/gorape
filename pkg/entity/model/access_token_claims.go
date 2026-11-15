@@ -10,14 +10,25 @@ type Roles struct {
 type AccessTokenClaims struct {
 	Issuer                string           `json:"iss"`
 	Subject               string           `json:"sub"`
+	AuthorizedParty       string           `json:"azp"`
+	ClientID              string           `json:"client_id"`
 	Scope                 string           `json:"scope"`
 	ExpiresAt             int64            `json:"exp"`
 	NotBefore             int64            `json:"nbf"`
+	AuthenticationTime    int64            `json:"auth_time"`
 	AuthenticationMethods []string         `json:"amr"`
 	AuthenticationContext string           `json:"acr"`
 	RealmAccess           Roles            `json:"realm_access"`
 	ResourceAccess        map[string]Roles `json:"resource_access"`
 	Groups                []string         `json:"groups"`
+}
+
+// ServiceIdentifier returns the OAuth client/service identifier from the token.
+func (rcvr AccessTokenClaims) ServiceIdentifier() string {
+	if rcvr.ClientID != "" {
+		return rcvr.ClientID
+	}
+	return rcvr.AuthorizedParty
 }
 
 // PasskeyAuthenticated reports whether Keycloak asserted the configured AMR

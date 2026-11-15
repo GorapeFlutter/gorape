@@ -28,6 +28,9 @@ func (rcvr *attestationRepository) Attestations(ctx context.Context, project, de
 	}
 	var v []model.Attestation
 	e := rcvr.db.WithContext(ctx).Table("attestations a").Joins("JOIN device_keys k ON k.project_id=a.project_id AND k.id=a.key_id").Where("a.project_id=? AND k.device_id=?", project, device).Order("a.verified_at DESC").Scan(&v).Error
+	for i := range v {
+		v[i].AssuranceLevel = v[i].EffectiveAssuranceLevel(false)
+	}
 	if LoggerInstance != nil {
 		LoggerInstance.DEBUG(rid, global.SRNAS2, "Attestations done", map[string]interface{}{"count": len(v), "error": e})
 	}

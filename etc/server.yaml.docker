@@ -11,32 +11,61 @@ Application:
       required_scopes: [openid]
       provider_urls:
         http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
+    authentication_assurance:
+      enabled: false
+      required_acr: ""
+      max_auth_age: ""
     attestation:
       android_trust_anchors: []
+      revocation:
+        enabled: false
+        timeout: 5s
+        cache_ttl: 1m
+      android_policy:
+        applications:
+          com.gorapeflutter.gf_app:
+            - b01e14464865684e1c653349ff19cfe3970abdcfff2c578458c6fb8c99175ac
+        minimum_os_version: 0
+        minimum_os_patch_level: 0
+        minimum_vendor_patch_level: 0
+        minimum_boot_patch_level: 0
       webauthn:
         # Local-device testing only: Android's Credential Manager may return
         # fmt=none. Keep the tracked production example default-deny.
-        allowed_formats: []
+        allowed_formats: [android-key, tpm, apple, packed, fido-u2f]
         allow_none: true
         allow_self_attestation: false
         trust_anchors:
           android-key: []
           tpm: []
           apple: []
+        mds:
+          enabled: false
+          cache_file: ""
+          url: "https://mds.fidoalliance.org/"
+          accept_legal_header: false
     webauthn:
-      # Fixed Android RP ID; the matching DAL statement is hosted by the
-      # Gorapeflutter organization Pages site. Keycloak remains a separate RP.
-      rp_id: gorapeflutter.github.io
+      rp_id: localhost
       rp_display_name: Gorape
       rp_origins:
-        # SHA-256 APK signing-certificate hash for this machine's Android
-        # debug keystore. Replace for another signing key/device environment.
+        - http://localhost:5173
+        - https://localhost:5173
+        - https://localhost:5174
+        - http://localhost:8000
+        - https://localhost:8443
         - android:apk-key-hash:sB4URkhlaE4cZTNJ_xnP85cKvc_O_LFeEWMb7jJkXWs
-      portal_origin: ""
-      browser_api_origin: ""
+      portal_origin: "http://localhost:5173"
+      browser_api_origin: "http://localhost:8000"
       attestation_conveyance: none
       user_verification: required
-    web_origins: []
+    web_origins:
+      - http://localhost:5173
+      - https://localhost:5173
+      - https://localhost:5174
+      - http://127.0.0.1:5173
+      - https://gorapeflutter.github.io
+      - https://local.gorapeflutter.github.io:5173
+      - https://local.gorapeflutter.github.io:5174
     platform:
       issuer: http://localhost:8080/realms/gorape
       provider_url: http://keycloak:8080/realms/gorape

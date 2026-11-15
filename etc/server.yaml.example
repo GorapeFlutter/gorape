@@ -10,8 +10,27 @@ Application:
     challenge_ttl: 5m
     redis: {challenge_prefix: "gorape:challenge:"}
     oidc: {audience: gorape-api, required_scopes: [openid], provider_urls: {}}
+    authentication_assurance:
+      # Enable only after Keycloak emits auth_time, matching acr and passkey amr
+      # in the validated access token.
+      enabled: false
+      required_acr: ""
+      max_auth_age: ""
     attestation:
       android_trust_anchors: []
+      revocation:
+        # Enable issuer-provided CRL/OCSP checks. Enabled checks fail closed.
+        enabled: false
+        timeout: 5s
+        cache_ttl: 1m
+      # Required to report Android attestation as implemented. Values are
+      # package-name -> allowed lowercase SHA-256 signing-certificate digests.
+      android_policy:
+        applications: {}
+        minimum_os_version: 0
+        minimum_os_patch_level: 0
+        minimum_vendor_patch_level: 0
+        minimum_boot_patch_level: 0
       webauthn:
         # Strict by default: no formats, no attestation:none, and no self-attestation.
         allowed_formats: []
@@ -21,6 +40,12 @@ Application:
           android-key: []
           tpm: []
           apple: []
+        mds:
+          # Enable only after reviewing and accepting the FIDO MDS legal header.
+          enabled: false
+          cache_file: ""
+          url: "https://mds.fidoalliance.org/"
+          accept_legal_header: false
     # Configure a stable RP ID distinct from Keycloak and every permitted
     # app/browser origin to enable Gorape device passkeys. Do not reuse the
     # localhost-only development configuration from server.yaml.docker in prod.

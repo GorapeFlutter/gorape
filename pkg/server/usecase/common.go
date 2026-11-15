@@ -24,6 +24,7 @@ import (
 var (
 	ErrForbidden                     = errors.New("forbidden")
 	ErrPasskeyAuthenticationRequired = errors.New("デバイス操作にはKeycloakパスキーでのログインが必要です。")
+	ErrAuthenticationStepUpRequired  = errors.New("a recent Keycloak passkey authentication is required")
 	ErrPlatformDisabled              = errors.New("platform authentication is disabled")
 )
 
@@ -41,12 +42,13 @@ type Service struct {
 	Challenges repository.ChallengeStore
 	Verifiers  *repository.VerifierRegistry
 
-	project      Project
-	group        Group
-	role         Role
-	device       Device
-	passkeys     PasskeyDevice
-	provisioning Provisioning
+	project       Project
+	group         Group
+	role          Role
+	device        Device
+	passkeys      PasskeyDevice
+	provisioning  Provisioning
+	authAssurance AuthenticationAssurancePolicy
 }
 
 func NewService(s *repository.Store, t repository.TokenValidator, c repository.ChallengeStore, v *repository.VerifierRegistry) *Service {
@@ -74,7 +76,25 @@ func (rcvr *Service) ConfigurePlatform(issuer string, adminRoles []string) {
 
 // ConfigureWebAuthn enables Gorape's independent WebAuthn RP ceremonies.
 func (rcvr *Service) ConfigureWebAuthn(rp *repository.WebAuthnRP) {
-	rcvr.passkeys = NewPasskeyDevice(rcvr.Store, rcvr.Challenges, rcvr.project, rcvr.device, rp)
+	rcvr.passkeys = NewPasskeyDevice(rcvr.Store, rcvr.Challenges, rcvr.project, rcvr.device, rp, rcvr.authAssurance)
+}
+
+// ConfigureAuthenticationAssurance enables explicit ACR/auth_time step-up for
+// sensitive Device and passkey operations. It remains disabled by default.
+func (rcvr *Service) ConfigureAuthenticationAssurance(policy AuthenticationAssurancePolicy) {
+	rcvr.authAssurance = policy
+	if device, ok := rcvr.device.(*deviceUsecase); ok {
+		device.authAssurance = policy
+	}
+	if passkeys, ok := rcvr.passkeys.(*passkeyDeviceUsecase); ok {
+		passkeys.authAssurance = policy
+	}
+}
+
+// RequireDeviceStepUp enforces the configured session assurance for security-
+// sensitive Device mutations while preserving legacy behavior when disabled.
+func (rcvr *Service) RequireDeviceStepUp(auth model.AuthContext) error {
+	return rcvr.authAssurance.RequireStepUp(auth)
 }
 
 // ConfigureProvisioning enables manifest provisioning. keycloak may be nil to
@@ -192,6 +212,18 @@ func (rcvr *Service) VerifyBrowserPasskeyAuthentication(ctx context.Context, q r
 		return ErrPasskeyUnavailable
 	}
 	return rcvr.passkeys.VerifyBrowserAuthentication(ctx, q)
+}
+func (rcvr *Service) CreateProofRequest(ctx context.Context, a model.AuthContext, q request.ProofRequestCreate) (response.ProofRequestOptions, error) {
+	if rcvr.passkeys == nil {
+		return response.ProofRequestOptions{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.CreateProofRequest(ctx, a, q)
+}
+func (rcvr *Service) VerifyProofRequest(ctx context.Context, a model.AuthContext, proofID string, q request.ProofRequestVerify) (response.ProofRequestVerifyResult, error) {
+	if rcvr.passkeys == nil {
+		return response.ProofRequestVerifyResult{}, ErrPasskeyUnavailable
+	}
+	return rcvr.passkeys.VerifyProofRequest(ctx, a, proofID, q)
 }
 func (rcvr *Service) AuthorizeDevice(ctx context.Context, a model.AuthContext, d uuid.UUID, permission model.Permission) error {
 	return rcvr.device.AuthorizeDevice(ctx, a, d, permission)

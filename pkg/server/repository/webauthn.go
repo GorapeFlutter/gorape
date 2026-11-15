@@ -2,7 +2,9 @@ package repository
 
 import (
 	"bytes"
+	"context"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -13,9 +15,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/global"
+	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -37,26 +42,31 @@ type WebAuthnRPConfig struct {
 	AllowSelfAttestation  bool
 	TrustAnchors          map[string][]string
 	ChallengeTTL          time.Duration
+	MDS                   metadata.Provider
+	RevocationChecker     *CertificateRevocationChecker
 }
 
 type WebAuthnRP struct {
-	server           *webauthn.WebAuthn
-	portalOrigin     string
-	browserAPIOrigin string
-	allowed          map[string]bool
-	allowNone        bool
-	allowSelf        bool
-	trustRoots       map[string]*x509.CertPool
-	challengeTTL     time.Duration
+	server            *webauthn.WebAuthn
+	portalOrigin      string
+	browserAPIOrigin  string
+	allowed           map[string]bool
+	allowNone         bool
+	allowSelf         bool
+	trustRoots        map[string]*x509.CertPool
+	mds               metadata.Provider
+	revocationChecker *CertificateRevocationChecker
+	challengeTTL      time.Duration
 }
 
 // WebAuthnUser is the account identity and the credential set presented to
 // go-webauthn for one registration or assertion ceremony.
 type WebAuthnUser struct {
-	ID          []byte
-	Name        string
-	DisplayName string
-	Credentials []webauthn.Credential
+	ID                 []byte
+	AllowedUserHandles [][]byte
+	Name               string
+	DisplayName        string
+	Credentials        []webauthn.Credential
 }
 
 func (u WebAuthnUser) WebAuthnID() []byte                         { return u.ID }
@@ -65,9 +75,13 @@ func (u WebAuthnUser) WebAuthnDisplayName() string                { return u.Dis
 func (u WebAuthnUser) WebAuthnCredentials() []webauthn.Credential { return u.Credentials }
 
 type WebAuthnAttestationResult struct {
-	Format          string
-	SecurityLevel   string
-	VerifierVersion string
+	Format            string
+	SecurityLevel     string
+	AssuranceLevel    string
+	HardwareProtected bool
+	BackupEligible    bool
+	BackupState       bool
+	VerifierVersion   string
 }
 
 // GF-10010 — Validates RP/attestation configuration and constructs the WebAuthn RP.
@@ -153,6 +167,7 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 		RPOrigins:              config.RPOrigins,
 		AttestationPreference:  conveyance,
 		AuthenticatorSelection: selection,
+		MDS:                    config.MDS,
 		Timeouts: webauthn.TimeoutsConfig{
 			Registration: webauthn.TimeoutConfig{Enforce: true, Timeout: config.ChallengeTTL},
 			Login:        webauthn.TimeoutConfig{Enforce: true, Timeout: config.ChallengeTTL},
@@ -184,9 +199,17 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 	return &WebAuthnRP{
 		server: server, portalOrigin: portalOrigin, browserAPIOrigin: browserAPIOrigin,
 		allowed: allowed, allowNone: config.AllowNone,
-		allowSelf: config.AllowSelfAttestation, trustRoots: roots,
-		challengeTTL: config.ChallengeTTL,
+		allowSelf: config.AllowSelfAttestation, trustRoots: roots, mds: config.MDS,
+		revocationChecker: config.RevocationChecker,
+		challengeTTL:      config.ChallengeTTL,
 	}, nil
+}
+
+func (rp *WebAuthnRP) RPID() string {
+	if rp == nil || rp.server == nil || rp.server.Config == nil {
+		return ""
+	}
+	return rp.server.Config.RPID
 }
 
 func (rp *WebAuthnRP) BrowserPortalURL() string {
@@ -232,6 +255,9 @@ func (rp *WebAuthnRP) registrationPolicyEnabled() bool {
 	if rp.allowNone {
 		return true
 	}
+	if rp.mds != nil && len(rp.allowed) > 0 {
+		return true
+	}
 	for format := range rp.allowed {
 		if roots := rp.trustRoots[format]; roots != nil && len(roots.Subjects()) > 0 {
 			return true
@@ -244,7 +270,7 @@ func (rp *WebAuthnRP) registrationPolicyEnabled() bool {
 }
 
 // GF-10013 — Verifies the registration response, credential ID, format, and attestation trust.
-func (rp *WebAuthnRP) VerifyRegistration(user WebAuthnUser, session webauthn.SessionData, credentialJSON []byte) (*webauthn.Credential, WebAuthnAttestationResult, error) {
+func (rp *WebAuthnRP) VerifyRegistration(ctx context.Context, user WebAuthnUser, session webauthn.SessionData, credentialJSON []byte) (*webauthn.Credential, WebAuthnAttestationResult, error) {
 	if LoggerInstance != nil {
 		LoggerInstance.DEBUG("", global.SRNWA3, "VerifyRegistration start", map[string]interface{}{"user": user.Name})
 	}
@@ -271,9 +297,18 @@ func (rp *WebAuthnRP) VerifyRegistration(user WebAuthnUser, session webauthn.Ses
 	if err != nil {
 		return nil, WebAuthnAttestationResult{}, fmt.Errorf("verify WebAuthn registration: %w", err)
 	}
-	result, err := rp.verifyTrust(format, parsed.Response.AttestationObject)
+	if !stored.Flags.BackupEligible && stored.Flags.BackupState {
+		return nil, WebAuthnAttestationResult{}, errors.New("invalid WebAuthn flags: backup state set on non-backup-eligible credential")
+	}
+	result, err := rp.verifyTrust(ctx, format, parsed.Response.AttestationObject)
 	if err != nil {
 		return nil, WebAuthnAttestationResult{}, err
+	}
+	result.BackupEligible = stored.Flags.BackupEligible
+	result.BackupState = stored.Flags.BackupState
+	result.AssuranceLevel = model.ResolveAssuranceLevel(result.SecurityLevel, stored.Flags.BackupEligible, true)
+	if !rp.allowNone && !rp.allowSelf && result.AssuranceLevel != model.AssuranceLevelHardwareAttested {
+		return nil, WebAuthnAttestationResult{}, fmt.Errorf("%w: high-assurance policy requires hardware_attested (got %s)", ErrAttestationPolicyDenied, result.AssuranceLevel)
 	}
 	return stored, result, nil
 }
@@ -304,12 +339,46 @@ func (rp *WebAuthnRP) VerifyAuthentication(user WebAuthnUser, session webauthn.S
 	if err = validateCredentialID(parsed.ID, parsed.RawID); err != nil {
 		return nil, err
 	}
-	return rp.server.ValidateLogin(user, session, parsed)
+	if len(parsed.Response.UserHandle) > 0 && !bytes.Equal(parsed.Response.UserHandle, user.ID) {
+		for _, existing := range user.Credentials {
+			if bytes.Equal(existing.ID, parsed.RawID) {
+				user.ID = append([]byte(nil), parsed.Response.UserHandle...)
+				session.UserID = append([]byte(nil), parsed.Response.UserHandle...)
+				break
+			}
+		}
+	}
+	updated, err := rp.server.ValidateLogin(user, session, parsed)
+	if err != nil {
+		return nil, err
+	}
+	if !updated.Flags.BackupEligible && updated.Flags.BackupState {
+		return nil, errors.New("invalid WebAuthn assertion flags: backup state set on non-backup-eligible credential")
+	}
+	if updated.Authenticator.CloneWarning {
+		return nil, errors.New("WebAuthn authenticator clone warning detected")
+	}
+	for _, existing := range user.Credentials {
+		if bytes.Equal(existing.ID, updated.ID) && existing.Flags.BackupEligible != updated.Flags.BackupEligible {
+			return nil, errors.New("WebAuthn credential backup eligibility changed after registration")
+		}
+	}
+	return updated, nil
 }
 
-func (rp *WebAuthnRP) verifyTrust(format string, attestation protocol.AttestationObject) (WebAuthnAttestationResult, error) {
+func (rp *WebAuthnRP) verifyTrust(ctx context.Context, format string, attestation protocol.AttestationObject) (WebAuthnAttestationResult, error) {
+	backupEligible := attestation.AuthData.Flags.HasBackupEligible()
+	backupState := attestation.AuthData.Flags.HasBackupState()
 	if format == string(protocol.AttestationFormatNone) {
-		return WebAuthnAttestationResult{Format: format, SecurityLevel: "none", VerifierVersion: "gorape-webauthn-v1"}, nil
+		return WebAuthnAttestationResult{
+			Format:            format,
+			SecurityLevel:     "none",
+			AssuranceLevel:    model.ResolveAssuranceLevel("none", backupEligible, true),
+			HardwareProtected: false,
+			BackupEligible:    backupEligible,
+			BackupState:       backupState,
+			VerifierVersion:   "gorape-webauthn-v1",
+		}, nil
 	}
 	chain, hasX5C, err := attestationCertificates(attestation)
 	if err != nil {
@@ -317,9 +386,47 @@ func (rp *WebAuthnRP) verifyTrust(format string, attestation protocol.Attestatio
 	}
 	if !hasX5C {
 		if rp.allowSelf && format == string(protocol.AttestationFormatPacked) {
-			return WebAuthnAttestationResult{Format: format, SecurityLevel: "self_attested", VerifierVersion: "gorape-webauthn-v1"}, nil
+			return WebAuthnAttestationResult{
+				Format:            format,
+				SecurityLevel:     "self_attested",
+				AssuranceLevel:    model.ResolveAssuranceLevel("self_attested", backupEligible, true),
+				HardwareProtected: false,
+				BackupEligible:    backupEligible,
+				BackupState:       backupState,
+				VerifierVersion:   "gorape-webauthn-v1",
+			}, nil
 		}
 		return WebAuthnAttestationResult{}, fmt.Errorf("%w: format %q has no trusted certificate chain", ErrAttestationPolicyDenied, format)
+	}
+	if format == string(protocol.AttestationFormatAndroidKey) {
+		if err := verifyWebAuthnAndroidKeyLeaf(chain[0]); err != nil {
+			return WebAuthnAttestationResult{}, err
+		}
+	}
+	if rp.mds != nil {
+		aaguid, err := uuid.FromBytes(attestation.AuthData.AttData.AAGUID)
+		if err != nil {
+			return WebAuthnAttestationResult{}, fmt.Errorf("invalid WebAuthn AAGUID: %w", err)
+		}
+		x5cs, ok := attestation.AttStatement["x5c"].([]any)
+		if !ok {
+			return WebAuthnAttestationResult{}, fmt.Errorf("%w: MDS trust validation requires x5c", ErrAttestationPolicyDenied)
+		}
+		if err := protocol.ValidateMetadata(ctx, rp.mds, aaguid, "", format, x5cs); err != nil {
+			return WebAuthnAttestationResult{}, fmt.Errorf("WebAuthn FIDO MDS validation: %w", err)
+		}
+		if err := rp.checkCertificateRevocation(ctx, chain); err != nil {
+			return WebAuthnAttestationResult{}, err
+		}
+		return WebAuthnAttestationResult{
+			Format:            format,
+			SecurityLevel:     "fido_mds_verified",
+			AssuranceLevel:    model.ResolveAssuranceLevel("fido_mds_verified", backupEligible, true),
+			HardwareProtected: true,
+			BackupEligible:    backupEligible,
+			BackupState:       backupState,
+			VerifierVersion:   "gorape-webauthn-mds-v1",
+		}, nil
 	}
 	roots := rp.trustRoots[format]
 	if roots == nil || len(roots.Subjects()) == 0 {
@@ -335,10 +442,63 @@ func (rp *WebAuthnRP) verifyTrust(format string, attestation protocol.Attestatio
 	}); err != nil {
 		return WebAuthnAttestationResult{}, fmt.Errorf("WebAuthn %s attestation certificate chain: %w", format, err)
 	}
+	if err := rp.checkCertificateRevocation(ctx, chain); err != nil {
+		return WebAuthnAttestationResult{}, err
+	}
+	secLevel := attestationSecurityLevel(format)
 	return WebAuthnAttestationResult{
-		Format: format, SecurityLevel: attestationSecurityLevel(format),
-		VerifierVersion: "gorape-webauthn-v1",
+		Format:            format,
+		SecurityLevel:     secLevel,
+		AssuranceLevel:    model.ResolveAssuranceLevel(secLevel, backupEligible, true),
+		HardwareProtected: true,
+		BackupEligible:    backupEligible,
+		BackupState:       backupState,
+		VerifierVersion:   "gorape-webauthn-v1",
 	}, nil
+}
+
+// verifyWebAuthnAndroidKeyLeaf enforces TEE/StrongBox hardware backing and
+// verified-boot RootOfTrust when an Android Key Attestation extension is present.
+func verifyWebAuthnAndroidKeyLeaf(leaf *x509.Certificate) error {
+	for _, ext := range leaf.Extensions {
+		if !ext.Id.Equal(androidKeyDescriptionOID) {
+			continue
+		}
+		var kd keyDescription
+		if _, err := asn1.Unmarshal(ext.Value, &kd); err != nil {
+			return fmt.Errorf("WebAuthn android-key description: %w", err)
+		}
+		if (kd.AttestationSecurityLevel != 1 && kd.AttestationSecurityLevel != 2) ||
+			kd.KeymasterSecurityLevel != kd.AttestationSecurityLevel {
+			return fmt.Errorf("%w: Android WebAuthn key is not hardware-backed (TEE/StrongBox required)", ErrAttestationPolicyDenied)
+		}
+		tee, err := parseAndroidAuthorizationList(kd.TEEEnforced)
+		if err != nil {
+			return fmt.Errorf("WebAuthn android-key TEE authorization list: %w", err)
+		}
+		origin, ok, err := androidExplicitInt(tee, androidTagOrigin)
+		if err != nil || !ok || origin != androidOriginGenerated {
+			return fmt.Errorf("%w: Android WebAuthn key origin must be generated in hardware", ErrAttestationPolicyDenied)
+		}
+		root, ok, err := parseAndroidRootOfTrust(tee)
+		if err != nil || !ok || len(root.VerifiedBootKey) == 0 || !root.DeviceLocked || root.VerifiedBootState != androidVerifiedBootState {
+			return fmt.Errorf("%w: Android WebAuthn RootOfTrust must be locked and verified", ErrAttestationPolicyDenied)
+		}
+		return nil
+	}
+	return fmt.Errorf("%w: WebAuthn android-key certificate is missing Android key attestation extension", ErrAttestationPolicyDenied)
+}
+
+func (rp *WebAuthnRP) checkCertificateRevocation(ctx context.Context, chain []*x509.Certificate) error {
+	if rp.revocationChecker == nil {
+		return nil
+	}
+	for _, cert := range chain {
+		if err := rp.revocationChecker.Check(ctx, cert); err != nil {
+			return fmt.Errorf("WebAuthn attestation certificate revocation check: %w", err)
+		}
+	}
+	return nil
 }
 
 func toOptionsMap(options any) (map[string]any, error) {
@@ -439,10 +599,11 @@ func validateRPIdentity(rpID string, origins []string) error {
 			if host == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" || (parsed.Path != "" && parsed.Path != "/") {
 				return fmt.Errorf("WebAuthn origin %q must be an origin, not a URL path", origin)
 			}
-			if parsed.Scheme == "http" && host != "localhost" && host != "127.0.0.1" && host != "::1" {
+			isLocalhost := host == "localhost" || host == "127.0.0.1" || host == "::1"
+			if parsed.Scheme == "http" && !isLocalhost {
 				return fmt.Errorf("WebAuthn origin %q must use HTTPS except for localhost", origin)
 			}
-			if host != rpID && !strings.HasSuffix(host, "."+rpID) {
+			if !isLocalhost && host != rpID && !strings.HasSuffix(host, "."+rpID) {
 				return fmt.Errorf("WebAuthn origin host %q is not within RP ID %q", host, rpID)
 			}
 			continue

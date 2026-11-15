@@ -23,6 +23,8 @@ type Device interface {
 	ProofVerify(c *gin.Context)
 	PasskeyAuthenticationOptions(c *gin.Context)
 	PasskeyAuthenticationVerify(c *gin.Context)
+	CreateProofRequest(c *gin.Context)
+	VerifyProofRequest(c *gin.Context)
 	BrowserPasskeyOptions(c *gin.Context)
 	BrowserPasskeyRegistrationVerify(c *gin.Context)
 	BrowserPasskeyAuthenticationVerify(c *gin.Context)
@@ -87,6 +89,10 @@ func (rcvr *deviceController) RevokeDevice(c *gin.Context) {
 	}
 	if e := rcvr.service.RequireProject(c, x, model.PermissionDeviceRevoke); e != nil {
 		fail(c, 403, e)
+		return
+	}
+	if e := rcvr.service.RequireDeviceStepUp(x); e != nil {
+		fail(c, http.StatusForbidden, e)
 		return
 	}
 	if e := rcvr.service.Store.RevokeDevice(c, x.Project.ID, d, x.Principal.ID); e != nil {
@@ -285,6 +291,45 @@ func (rcvr *deviceController) BrowserPasskeyAuthenticationVerify(c *gin.Context)
 		return
 	}
 	c.JSON(200, gin.H{"status": "verified"})
+}
+
+// CreateProofRequest (GF-API-01) issues an operation-bound WebAuthn challenge for an external service.
+func (rcvr *deviceController) CreateProofRequest(c *gin.Context) {
+	x, ok := auth(c)
+	if !ok {
+		return
+	}
+	var q request.ProofRequestCreate
+	if !bind(c, &q) {
+		return
+	}
+	v, err := rcvr.service.CreateProofRequest(c, x, q)
+	if err != nil {
+		failPasskey(c, err)
+		return
+	}
+	c.Header("Cache-Control", "no-store")
+	c.JSON(http.StatusCreated, v)
+}
+
+// VerifyProofRequest (GF-API-02) verifies an assertion for an external service operation.
+func (rcvr *deviceController) VerifyProofRequest(c *gin.Context) {
+	x, ok := auth(c)
+	if !ok {
+		return
+	}
+	proofID := c.Param("proofId")
+	var q request.ProofRequestVerify
+	if !bindWebAuthnCredential(c, &q) {
+		return
+	}
+	v, err := rcvr.service.VerifyProofRequest(c, x, proofID, q)
+	if err != nil {
+		failPasskeyAssertion(c, err)
+		return
+	}
+	c.Header("Cache-Control", "no-store")
+	c.JSON(http.StatusOK, v)
 }
 
 func bindWebAuthnCredential(c *gin.Context, value any) bool {

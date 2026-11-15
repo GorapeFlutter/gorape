@@ -57,6 +57,10 @@
         "description": "Gorape project viewer; maps to the built-in viewer role definition"
       },
       {
+        "name": "gorape-service",
+        "description": "External service role for Gorape WebAuthn proof requests and verification"
+      },
+      {
         "name": "demo-auditor",
         "description": "Custom demo auditor role for permission tests"
       }
@@ -1538,6 +1542,67 @@
       "secret": "gorape-api-secret-dev",
       "redirectUris": [],
       "webOrigins": []
+    },
+    {
+      "clientId": "gorape-sample-service",
+      "name": "Gorape sample external service backend",
+      "description": "Confidential service account client for gf-sample-backend",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "gorape-sample-service-secret",
+      "redirectUris": [],
+      "webOrigins": [],
+      "protocolMappers": [
+        {
+          "name": "gorape-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "gorape-api",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "gorape-sample-web",
+      "name": "Gorape sample Vue web client",
+      "description": "Public OIDC PKCE client for gf-sample-web",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "https://localhost:5173/*",
+        "http://127.0.0.1:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "https://localhost:5173",
+        "http://127.0.0.1:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "gorape-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "gorape-api",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "groups": [
@@ -2448,6 +2513,15 @@
     }
   ],
   "users": [
+    {
+      "id": "a1b2c3d4-0000-4000-8000-000000000001",
+      "username": "service-account-gorape-sample-service",
+      "enabled": true,
+      "serviceAccountClientId": "gorape-sample-service",
+      "realmRoles": [
+        "gorape-service"
+      ]
+    },
     {
       "id": "7fef7962-f927-42d9-99ac-6585dd3fb8c9",
       "username": "gorape-admin",
