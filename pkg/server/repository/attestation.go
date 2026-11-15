@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/Gorapeflutter/gorape/pkg/global"
 )
 
 var ErrUnsupportedAttestation = errors.New("attestation platform is unsupported")
@@ -43,11 +45,24 @@ func NewVerifierRegistry(androidRoots []string) (*VerifierRegistry, error) {
 	return &VerifierRegistry{items: map[string]AttestationVerifier{"android": a}, androidConfigured: len(androidRoots) > 0}, nil
 }
 func (rcvr *VerifierRegistry) Verify(ctx context.Context, q AttestationRequest) (*AttestationResult, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNAT1, "VerifierRegistry Verify start", map[string]interface{}{"platform": q.Platform})
+	}
 	v := rcvr.items[q.Platform]
 	if v == nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNAT2, "VerifierRegistry unsupported", nil)
+		}
 		return nil, ErrUnsupportedAttestation
 	}
-	return v.Verify(ctx, q)
+	res, e := v.Verify(ctx, q)
+	if e != nil {
+		if LoggerInstance != nil {
+			LoggerInstance.DEBUG(rid, global.SRNAT3, "VerifierRegistry verify error", map[string]interface{}{"error": e})
+		}
+	}
+	return res, e
 }
 func (rcvr *VerifierRegistry) Capabilities() map[string]string {
 	android := "unconfigured"
@@ -86,7 +101,11 @@ type keyDescription struct {
 	TEEEnforced              asn1.RawValue
 }
 
-func (rcvr *AndroidVerifier) Verify(_ context.Context, q AttestationRequest) (*AttestationResult, error) {
+func (rcvr *AndroidVerifier) Verify(ctx context.Context, q AttestationRequest) (*AttestationResult, error) {
+	rid, _ := ctx.Value("requestID").(string)
+	if LoggerInstance != nil {
+		LoggerInstance.DEBUG(rid, global.SRNAT4, "AndroidVerifier Verify start", nil)
+	}
 	if len(rcvr.roots.Subjects()) == 0 {
 		return nil, errors.New("Android attestation trust anchors are not configured")
 	}
