@@ -22,9 +22,7 @@ Application:
         timeout: 5s
         cache_ttl: 1m
       android_policy:
-        applications:
-          com.gorapeflutter.gf_app:
-            - b01e14464865684e1c653349ff19cfe3970abdcfff2c578458c6fb8c99175ac
+        applications: {}
         minimum_os_version: 0
         minimum_os_patch_level: 0
         minimum_vendor_patch_level: 0
@@ -53,7 +51,6 @@ Application:
         - https://localhost:5174
         - http://localhost:8000
         - https://localhost:8443
-        - android:apk-key-hash:sB4URkhlaE4cZTNJ_xnP85cKvc_O_LFeEWMb7jJkXWs
       portal_origin: "http://localhost:5173"
       browser_api_origin: "http://localhost:8000"
       attestation_conveyance: none
