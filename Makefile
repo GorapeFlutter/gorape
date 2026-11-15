@@ -2,7 +2,7 @@
 .PHONY: help s bootstrap build fmt fmt-check vet lint tidy \
 	test test-unit test-integration test-e2e test-race coverage \
 	dev-up dev-down dev-recreate dev-api \
-	svr-up svr-down config docs docs-build docs-serve \
+	svr-up svr-down config docs docs-build docs-serve docs-check \
 	localstack logs clean
 
 # ---------------------------------------------------------------------------
@@ -44,6 +44,7 @@ help:
 	@echo ""
 	@echo "  Documentation"
 	@echo "    make docs            Build the GitHub Pages artifact into _site"
+	@echo "    make docs-check      Validate GF source links and OpenAPI endpoint table"
 	@echo "    make docs-serve      Build and serve _site at http://localhost:8000"
 	@echo ""
 	@echo "  Quality"
@@ -119,12 +120,15 @@ config:
 # ---------------------------------------------------------------------------
 # Documentation
 # ---------------------------------------------------------------------------
-docs:
+docs-check:
+	./scripts/check-docs.sh
+
+docs: docs-check
 	./scripts/main.sh docs build
 
 docs-build: docs
 
-docs-serve:
+docs-serve: docs-check
 	./scripts/main.sh docs serve
 
 # ---------------------------------------------------------------------------

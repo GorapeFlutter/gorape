@@ -30,6 +30,7 @@ func NewProvisioning(gorape repository.Provisioning, keycloak repository.Keycloa
 	return &provisioningUsecase{gorape: gorape, keycloak: keycloak, project: project}
 }
 
+// GF-10023 — Validates a platform-admin manifest and returns a non-mutating plan.
 func (rcvr *provisioningUsecase) PlanProvisioning(ctx context.Context, a model.AuthContext, m provisioning.Manifest) (provisioning.Result, error) {
 	if e := rcvr.project.RequirePlatform(ctx, a); e != nil {
 		return provisioning.Result{}, e
@@ -55,6 +56,7 @@ func (rcvr *provisioningUsecase) PlanProvisioning(ctx context.Context, a model.A
 	return provisioning.Result{Applied: false, Actions: actions}, nil
 }
 
+// GF-10024 — Applies Keycloak resources first, then project-scoped Gorape resources.
 func (rcvr *provisioningUsecase) ApplyProvisioning(ctx context.Context, a model.AuthContext, m provisioning.Manifest) (provisioning.Result, error) {
 	if e := rcvr.project.RequirePlatform(ctx, a); e != nil {
 		return provisioning.Result{}, e

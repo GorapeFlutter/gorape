@@ -12,6 +12,7 @@ import (
 
 const authContextKey = "gorape_auth"
 
+// GF-10003 — Validates a bearer access token and attaches project auth context.
 func Authenticate(s *usecase.Service, byIssuer bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		h := c.GetHeader("Authorization")
@@ -39,6 +40,7 @@ func Authenticate(s *usecase.Service, byIssuer bool) gin.HandlerFunc {
 // AuthenticatePlatform validates a platform administrator token. It does not
 // require a Gorape project, which is what allows bootstrapping the first
 // project through the server.
+// GF-10004 — Validates platform-issuer tokens for provisioning routes.
 func AuthenticatePlatform(s *usecase.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		h := c.GetHeader("Authorization")

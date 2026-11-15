@@ -7,3 +7,4 @@
 - [Client integration](client.md)
 - [WebAuthn and passkey attestation](webauthn.md)
 - [Security status](security.md)
+- [Backend source index](source-index.md)

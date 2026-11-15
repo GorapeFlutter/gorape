@@ -39,6 +39,7 @@ func (rcvr *projectUsecase) configurePlatform(issuer string, adminRoles []string
 	rcvr.platformAdminRoles = adminRoles
 }
 
+// GF-10005 — Validates a project token and resolves its issuer/subject principal.
 func (rcvr *projectUsecase) Authenticate(ctx context.Context, projectID, token string) (model.AuthContext, error) {
 	id, e := repository.ParseUUID(projectID)
 	if e != nil {
@@ -59,6 +60,7 @@ func (rcvr *projectUsecase) Authenticate(ctx context.Context, projectID, token s
 	return model.AuthContext{Project: p, Principal: principal, Claims: claims}, nil
 }
 
+// GF-10006 — Resolves a token's issuer to a project before project authentication.
 func (rcvr *projectUsecase) AuthenticateIssuer(ctx context.Context, token string) (model.AuthContext, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
@@ -153,7 +155,7 @@ func (rcvr *projectUsecase) RequireProjectRole(ctx context.Context, a model.Auth
 	}
 }
 
-// EffectivePermissions resolves both Gorape role bindings and dynamic Keycloak
+// GF-10007 — EffectivePermissions resolves both Gorape role bindings and dynamic Keycloak
 // claims. Project-scoped permissions always apply. Group-scoped bindings and
 // Keycloak group paths apply only when group is non-nil.
 func (rcvr *projectUsecase) EffectivePermissions(ctx context.Context, a model.AuthContext, group *uuid.UUID) (model.PermissionSet, []string, error) {

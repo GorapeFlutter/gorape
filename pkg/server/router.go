@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GF-10002 — Builds middleware and registers the public, platform, and project routes.
 func InitRouter(conf config.BaseConfig) *gin.Engine {
 	// Initialize global server logger
 	if logger, ok := conf.Logger.(*share.ServerLogger); ok {

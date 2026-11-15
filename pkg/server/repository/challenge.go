@@ -67,6 +67,7 @@ func (rcvr *RedisChallengeStore) CreateWithValue(ctx context.Context, p uuid.UUI
 
 var consumeScript = redis.NewScript(`local v=redis.call('GET',KEYS[1]); if not v then return nil end; redis.call('DEL',KEYS[1]); return v`)
 
+// GF-10009 — Atomically consumes a Redis challenge once and rejects expired values.
 func (rcvr *RedisChallengeStore) Consume(ctx context.Context, id string) (Challenge, error) {
 	result, e := consumeScript.Run(ctx, rcvr.client, []string{rcvr.prefix + id}).Result()
 	if e == redis.Nil {

@@ -156,7 +156,7 @@ func BuiltinPermissions(key string) ([]string, bool) {
 // the convention keeps existing manifests short.
 func KeycloakRoleName(roleKey string) string { return "gorape-" + roleKey }
 
-// EffectivePermissions expands role definitions into a permission set.
+// GF-10025 — EffectivePermissions expands role definitions into a permission set.
 func EffectivePermissions(definitions []RoleDefinition, keys []string) PermissionSet {
 	byKey := make(map[string]RoleDefinition, len(definitions))
 	for _, d := range definitions {

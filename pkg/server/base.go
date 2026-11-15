@@ -10,6 +10,7 @@ import (
 	"github.com/Gorapeflutter/gorape/pkg/config"
 )
 
+// GF-10001 — Starts the API's HTTP and optional TLS listeners.
 func Main(conf config.BaseConfig) {
 	serverConfig := conf.YamlConfig.Application.Server
 	if (serverConfig.TLSCertFile == "") != (serverConfig.TLSKeyFile == "") {

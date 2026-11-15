@@ -61,6 +61,7 @@ func NewPasskeyDevice(store *repository.Store, challenges repository.ChallengeSt
 	return &passkeyDeviceUsecase{store: store, challenges: challenges, projectUC: projectUC, deviceUC: deviceUC, rp: rp}
 }
 
+// GF-10016 — Authorizes and binds registration options to a single-use challenge.
 func (uc *passkeyDeviceUsecase) RegistrationOptions(ctx context.Context, auth model.AuthContext, q request.PasskeyRegistrationOptions) (response.PasskeyCeremonyOptions, error) {
 	if err := requirePasskeyAuthentication(auth); err != nil {
 		return response.PasskeyCeremonyOptions{}, err
@@ -117,6 +118,7 @@ func (uc *passkeyDeviceUsecase) RegistrationOptions(ctx context.Context, auth mo
 	}, nil
 }
 
+// GF-10017 — Consumes registration state, verifies the response, and stores the credential.
 func (uc *passkeyDeviceUsecase) VerifyRegistration(ctx context.Context, auth model.AuthContext, q request.PasskeyRegistrationVerify) (response.PasskeyRegistrationResult, error) {
 	if err := requirePasskeyAuthentication(auth); err != nil {
 		return response.PasskeyRegistrationResult{}, err
@@ -137,6 +139,7 @@ func (uc *passkeyDeviceUsecase) VerifyRegistration(ctx context.Context, auth mod
 	)
 }
 
+// GF-10021 — Completes browser registration using its single-use capability.
 func (uc *passkeyDeviceUsecase) VerifyBrowserRegistration(ctx context.Context, q request.BrowserPasskeyRegistrationVerify) (response.PasskeyRegistrationResult, error) {
 	if uc.rp == nil {
 		return response.PasskeyRegistrationResult{}, ErrPasskeyUnavailable
@@ -148,6 +151,7 @@ func (uc *passkeyDeviceUsecase) VerifyBrowserRegistration(ctx context.Context, q
 	return uc.verifyRegistrationChallenge(ctx, ch, nil, "", "", q.Credential)
 }
 
+// GF-10020 — Reads only browser ceremony options bound to an unexpired capability.
 func (uc *passkeyDeviceUsecase) BrowserOptions(ctx context.Context, challengeID string) (response.PasskeyBrowserOptions, error) {
 	reader, ok := uc.challenges.(repository.ChallengeReader)
 	if !ok {
@@ -243,6 +247,7 @@ func (uc *passkeyDeviceUsecase) verifyRegistrationChallenge(
 	}, nil
 }
 
+// GF-10018 — Authorizes and binds assertion options to the requested device and challenge.
 func (uc *passkeyDeviceUsecase) AuthenticationOptions(ctx context.Context, auth model.AuthContext, deviceID uuid.UUID, q request.PasskeyAuthenticationOptions) (response.PasskeyCeremonyOptions, error) {
 	if err := requirePasskeyAuthentication(auth); err != nil {
 		return response.PasskeyCeremonyOptions{}, err
@@ -305,6 +310,7 @@ func (uc *passkeyDeviceUsecase) AuthenticationOptions(ctx context.Context, auth 
 	}, nil
 }
 
+// GF-10019 — Consumes assertion state and records verified device possession.
 func (uc *passkeyDeviceUsecase) VerifyAuthentication(ctx context.Context, auth model.AuthContext, deviceID uuid.UUID, q request.PasskeyAuthenticationVerify) error {
 	if err := requirePasskeyAuthentication(auth); err != nil {
 		return err
@@ -322,6 +328,7 @@ func (uc *passkeyDeviceUsecase) VerifyAuthentication(ctx context.Context, auth m
 	return uc.verifyAuthenticationChallenge(ctx, ch, auth, deviceID, q.Credential, true)
 }
 
+// GF-10022 — Completes browser assertion using its single-use capability.
 func (uc *passkeyDeviceUsecase) VerifyBrowserAuthentication(ctx context.Context, q request.BrowserPasskeyAuthenticationVerify) error {
 	if uc.rp == nil {
 		return ErrPasskeyUnavailable

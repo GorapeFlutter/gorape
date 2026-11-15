@@ -121,6 +121,7 @@ func (rcvr *deviceUsecase) VerifyProof(ctx context.Context, a model.AuthContext,
 	return rcvr.store.MarkDeviceVerified(ctx, a.Project.ID, d, a.Principal.ID)
 }
 
+// GF-10008 — Gates device operations on the verified passkey AMR claim.
 func requirePasskeyAuthentication(a model.AuthContext) error {
 	if !a.Claims.PasskeyAuthenticated() {
 		return ErrPasskeyAuthenticationRequired

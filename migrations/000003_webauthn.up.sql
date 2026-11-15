@@ -1,3 +1,4 @@
+-- GF-10026 — Adds persisted WebAuthn credential state and web/Linux platform values.
 ALTER TABLE device_keys
     ADD COLUMN credential_data JSONB;
 

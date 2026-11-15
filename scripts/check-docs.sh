@@ -2,6 +2,7 @@
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+python3 scripts/docs/link_gf_ids.py --check
 test ! -d docs/dist && test ! -d docs/_site || {
   echo "Generated static pages must not be stored under docs/" >&2
   exit 1

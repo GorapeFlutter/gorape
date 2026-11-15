@@ -69,6 +69,7 @@ type WebAuthnAttestationResult struct {
 	VerifierVersion string
 }
 
+// GF-10010 — Validates RP/attestation configuration and constructs the WebAuthn RP.
 func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 	if config.RPID == "" || len(config.RPOrigins) == 0 {
 		return nil, errors.New("WebAuthn RP ID and at least one allowed origin are required")
@@ -202,6 +203,7 @@ func (rp *WebAuthnRP) BrowserPortalReady() bool {
 	return rp.BrowserPortalURL() != "" && rp.BrowserAPIOrigin() != ""
 }
 
+// GF-10012 — Creates WebAuthn registration options while excluding existing credentials.
 func (rp *WebAuthnRP) RegistrationOptions(user WebAuthnUser) (map[string]any, webauthn.SessionData, error) {
 	if !rp.registrationPolicyEnabled() {
 		return nil, webauthn.SessionData{}, ErrAttestationPolicyDenied
@@ -234,6 +236,7 @@ func (rp *WebAuthnRP) registrationPolicyEnabled() bool {
 	return false
 }
 
+// GF-10013 — Verifies the registration response, credential ID, format, and attestation trust.
 func (rp *WebAuthnRP) VerifyRegistration(user WebAuthnUser, session webauthn.SessionData, credentialJSON []byte) (*webauthn.Credential, WebAuthnAttestationResult, error) {
 	parsed, err := protocol.ParseCredentialCreationResponseBytes(credentialJSON)
 	if err != nil {
@@ -265,6 +268,7 @@ func (rp *WebAuthnRP) VerifyRegistration(user WebAuthnUser, session webauthn.Ses
 	return stored, result, nil
 }
 
+// GF-10014 — Creates an assertion challenge for an enrolled WebAuthn credential.
 func (rp *WebAuthnRP) AuthenticationOptions(user WebAuthnUser) (map[string]any, webauthn.SessionData, error) {
 	assertion, session, err := rp.server.BeginLogin(user)
 	if err != nil {
@@ -275,6 +279,7 @@ func (rp *WebAuthnRP) AuthenticationOptions(user WebAuthnUser) (map[string]any, 
 	return options, *session, err
 }
 
+// GF-10015 — Verifies the WebAuthn assertion and returns the updated credential state.
 func (rp *WebAuthnRP) VerifyAuthentication(user WebAuthnUser, session webauthn.SessionData, credentialJSON []byte) (*webauthn.Credential, error) {
 	parsed, err := protocol.ParseCredentialRequestResponseBytes(credentialJSON)
 	if err != nil {
@@ -393,6 +398,7 @@ func attestationSecurityLevel(format string) string {
 	}
 }
 
+// GF-10011 — Enforces a host-only RP ID and exact HTTPS/native origin allowlist.
 func validateRPIdentity(rpID string, origins []string) error {
 	rpID = strings.TrimSpace(rpID)
 	if rpID == "" || strings.HasSuffix(rpID, ".") || rpID != strings.ToLower(rpID) || strings.ContainsAny(rpID, "/:@?#* ") {
