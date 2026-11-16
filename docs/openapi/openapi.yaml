@@ -4,7 +4,12 @@ info:
   version: 0.1.0
   description: Open Device Trust & Attestation Backend. Send Keycloak access tokens, never ID tokens.
 servers:
-  - url: https://gorape.example.com
+  - url: https://api.gorapeflutter.site
+    description: Official GorapeFlutter verification / production API endpoint
+  - url: https://api.gorapeflutter.site:8443
+    description: Local HTTPS development endpoint (*.gorapeflutter.site -> 127.0.0.1)
+  - url: http://api.gorapeflutter.site:8000
+    description: Local HTTP development endpoint (*.gorapeflutter.site -> 127.0.0.1)
 security:
   - bearerAuth: []
 paths:

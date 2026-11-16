@@ -5,7 +5,7 @@ CREATE TABLE projects (
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
  issuer TEXT NOT NULL UNIQUE, realm TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'active',
  created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
- CHECK (issuer ~ '^https://' OR issuer ~ '^http://(localhost|127[.]0[.]0[.]1)(:[0-9]+)?/'), UNIQUE(id,issuer)
+ CHECK (issuer ~ '^https://' OR issuer ~ '^http://(localhost|127[.]0[.]0[.]1|([a-z0-9-]+[.])*gorapeflutter[.]site)(:[0-9]+)?/'), UNIQUE(id,issuer)
 );
 CREATE TABLE groups (
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,

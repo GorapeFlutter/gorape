@@ -78,6 +78,23 @@ func TestWebAuthnRPUsesConfiguredMDSProviderForTrustAndStatus(t *testing.T) {
 	}
 }
 
+func TestWebAuthnRPNormalizesTypedNilMDSProvider(t *testing.T) {
+	var provider *FidoMDSProvider
+	rp, err := NewWebAuthnRP(WebAuthnRPConfig{
+		RPID: "gorape.example", RPOrigins: []string{"https://gorape.example"},
+		AllowedFormats: []string{"android-key"}, MDS: provider,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rp.mds != nil {
+		t.Fatal("typed nil MDS provider must be normalized to nil")
+	}
+	if rp.server.Config.MDS != nil {
+		t.Fatal("typed nil MDS provider must not be passed to go-webauthn")
+	}
+}
+
 func TestWebAuthnAttestationTrustPolicy(t *testing.T) {
 	now := time.Now()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -151,20 +168,35 @@ func TestWebAuthnDoesNotIssueOptionsForFormatsWithoutTrust(t *testing.T) {
 }
 
 func TestWebAuthnRPValidatesExactOriginsAndAndroidNativeOrigin(t *testing.T) {
-	if err := validateRPIdentity("gorape.example", []string{
-		"https://app.gorape.example",
+	if err := validateRPIdentity("gorapeflutter.site", []string{
+		"https://gorapeflutter.site",
+		"https://app.gorapeflutter.site",
+		"https://app.gorapeflutter.site:5174",
+		"https://local.gorapeflutter.site:5174",
+		"https://api.gorapeflutter.site:8443",
+		"http://localhost:5173",
+		"https://localhost:8443",
 		"android:apk-key-hash:ABCDEF",
 	}); err != nil {
-		t.Fatalf("valid browser/native origins rejected: %v", err)
+		t.Fatalf("valid gorapeflutter.site browser/native origins rejected: %v", err)
+	}
+	if err := validateRPIdentity("custom.example.org", []string{
+		"https://app.custom.example.org",
+		"https://api.custom.example.org:8443",
+		"android:apk-key-hash:ABCDEF",
+	}); err != nil {
+		t.Fatalf("valid custom domain origins rejected: %v", err)
 	}
 	for _, test := range []struct {
 		name    string
 		rpID    string
 		origins []string
 	}{
-		{name: "wildcard", rpID: "gorape.example", origins: []string{"https://*.gorape.example"}},
-		{name: "unrelated origin", rpID: "gorape.example", origins: []string{"https://attacker.example"}},
-		{name: "public suffix RP ID", rpID: "com", origins: []string{"https://example.com"}},
+		{name: "wildcard", rpID: "gorapeflutter.site", origins: []string{"https://*.gorapeflutter.site"}},
+		{name: "insecure non-localhost http", rpID: "gorapeflutter.site", origins: []string{"http://app.gorapeflutter.site:5173"}},
+		{name: "unrelated origin", rpID: "gorapeflutter.site", origins: []string{"https://attacker.example"}},
+		{name: "sibling subdomain mismatch", rpID: "app.gorapeflutter.site", origins: []string{"https://idp.gorapeflutter.site"}},
+		{name: "public suffix RP ID", rpID: "site", origins: []string{"https://gorapeflutter.site"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			if err := validateRPIdentity(test.rpID, test.origins); err == nil {
@@ -283,5 +315,121 @@ func TestWebAuthnAndroidKeyRequiresHardwareTEEAndLockedBoot(t *testing.T) {
 	softCert, _ := x509.ParseCertificate(softCertDER)
 	if err := verifyWebAuthnAndroidKeyLeaf(softCert); !errors.Is(err, ErrAttestationPolicyDenied) {
 		t.Fatalf("software android-key leaf error = %v, want ErrAttestationPolicyDenied", err)
+	}
+}
+
+func TestWebAuthnAssurancePolicyRejectsSyncedAndNonHardwareCredentials(t *testing.T) {
+	high := &WebAuthnRP{
+		requiredAssurance: model.AssuranceLevelHardwareAttested,
+		allowSynced:       false,
+		hardwareFormats:   map[string]bool{"android-key": true},
+	}
+	for _, test := range []struct {
+		name   string
+		result WebAuthnAttestationResult
+		ok     bool
+	}{
+		{
+			name: "synchronizable passkey cannot satisfy high assurance",
+			result: WebAuthnAttestationResult{
+				AssuranceLevel: model.AssuranceLevelStandardPasskey,
+				BackupEligible: true,
+			},
+		},
+		{
+			name: "device-bound without hardware attestation cannot satisfy high assurance",
+			result: WebAuthnAttestationResult{
+				AssuranceLevel: model.AssuranceLevelDeviceBoundUnattested,
+			},
+		},
+		{
+			name: "verified hardware with BE=false satisfies high assurance",
+			result: WebAuthnAttestationResult{
+				AssuranceLevel:    model.AssuranceLevelHardwareAttested,
+				HardwareProtected: true,
+			},
+			ok: true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			err := high.enforceAssurance(test.result)
+			if test.ok && err != nil {
+				t.Fatalf("enforceAssurance() = %v, want nil", err)
+			}
+			if !test.ok && !errors.Is(err, ErrAttestationPolicyDenied) {
+				t.Fatalf("enforceAssurance() = %v, want ErrAttestationPolicyDenied", err)
+			}
+		})
+	}
+
+	standard := &WebAuthnRP{
+		requiredAssurance: model.AssuranceLevelStandardPasskey,
+		allowSynced:       true,
+	}
+	if err := standard.enforceAssurance(WebAuthnAttestationResult{
+		AssuranceLevel: model.AssuranceLevelStandardPasskey, BackupEligible: true,
+	}); err != nil {
+		t.Fatalf("standard policy rejected a synced passkey: %v", err)
+	}
+}
+
+func TestWebAuthnHighAssuranceConfigurationIsConsistent(t *testing.T) {
+	allowSynced := true
+	_, err := NewWebAuthnRP(WebAuthnRPConfig{
+		RPID: "gorape.example", RPOrigins: []string{"https://gorape.example"},
+		AllowedFormats:      []string{"android-key"},
+		RequiredAssurance:   model.AssuranceLevelHardwareAttested,
+		AllowSyncedPasskeys: &allowSynced,
+	})
+	if err == nil {
+		t.Fatal("high assurance with synchronizable passkeys must fail startup")
+	}
+
+	allowSynced = false
+	_, err = NewWebAuthnRP(WebAuthnRPConfig{
+		RPID: "gorape.example", RPOrigins: []string{"https://gorape.example"},
+		AllowedFormats:      []string{"packed"},
+		RequiredAssurance:   model.AssuranceLevelHardwareAttested,
+		AllowSyncedPasskeys: &allowSynced,
+		HardwareFormats:     []string{"android-key"},
+	})
+	if err == nil {
+		t.Fatal("high assurance without a hardware-capable format must fail startup")
+	}
+
+	rp, err := NewWebAuthnRP(WebAuthnRPConfig{
+		RPID: "gorape.example", RPOrigins: []string{"https://gorape.example"},
+		AllowedFormats:      []string{"android-key"},
+		RequiredAssurance:   model.AssuranceLevelHardwareAttested,
+		AllowSyncedPasskeys: &allowSynced,
+		HardwareFormats:     []string{"android-key"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := rp.AuthorizeAssurance(model.AssuranceLevelStandardPasskey); !errors.Is(err, ErrAttestationPolicyDenied) {
+		t.Fatalf("standard level under high policy = %v, want denial", err)
+	}
+	if err := rp.AuthorizeAssurance(model.AssuranceLevelHardwareAttested); err != nil {
+		t.Fatalf("hardware level under high policy = %v, want acceptance", err)
+	}
+}
+
+func TestMetadataKeyProtectionDeterminesHardware(t *testing.T) {
+	for _, test := range []struct {
+		protection []string
+		want       bool
+	}{
+		{protection: []string{"hardware"}, want: true},
+		{protection: []string{"tee"}, want: true},
+		{protection: []string{"secure_element"}, want: true},
+		{protection: []string{"software"}, want: false},
+		{protection: []string{"remote_handle"}, want: false},
+		{protection: nil, want: false},
+	} {
+		entry := &metadata.Entry{MetadataStatement: metadata.Statement{KeyProtection: test.protection}}
+		if got := metadataHardwareProtected(entry); got != test.want {
+			t.Fatalf("metadataHardwareProtected(%v) = %v, want %v", test.protection, got, test.want)
+		}
 	}
 }

@@ -6,7 +6,7 @@ services:
     container_name: gorape
     platform: ${DOCKER_PLATFORM:-linux/arm64}
     ports:
-      - "8000:8000"
+      - "${GORAPE_HTTP_PORT:-8000}:8000"
     volumes:
       - ./etc/server.yaml.docker:/app/etc/server.yaml:ro
     depends_on:

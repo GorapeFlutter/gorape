@@ -1,5 +1,6 @@
 Application:
   Server:
+    host: ""
     port: 8000
     tls_port: 8443
     tls_cert_file: ""
@@ -10,6 +11,10 @@ Application:
       audience: gorape-api
       required_scopes: [openid]
       provider_urls:
+        http://idp.gorapeflutter.site:8080/realms/gorape: http://keycloak:8080/realms/gorape
+        https://idp.gorapeflutter.site:8443/realms/gorape: http://keycloak:8080/realms/gorape
+        https://idp.gorapeflutter.site:9443/realms/gorape: http://keycloak:8080/realms/gorape
+        https://idp.gorapeflutter.site/realms/gorape: http://keycloak:8080/realms/gorape
         http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
     authentication_assurance:
       enabled: false
@@ -28,10 +33,10 @@ Application:
         minimum_vendor_patch_level: 0
         minimum_boot_patch_level: 0
       webauthn:
-        # Local-device testing only: Android's Credential Manager may return
-        # fmt=none. Keep the tracked production example default-deny.
+        # Request direct attestation for hardware-assurance testing. Providers
+        # may still return none; do not accept it as a hardware-backed result.
         allowed_formats: [android-key, tpm, apple, packed, fido-u2f]
-        allow_none: true
+        allow_none: false
         allow_self_attestation: false
         trust_anchors:
           android-key: []
@@ -42,34 +47,50 @@ Application:
           cache_file: ""
           url: "https://mds.fidoalliance.org/"
           accept_legal_header: false
+        # This local policy allows standard credentials with verified
+        # attestation, but rejects fmt=none. High assurance additionally sets
+        # required: hardware_attested and allow_synced_passkeys: false.
+        assurance:
+          required: standard_passkey
+          allow_synced_passkeys: true
+          hardware_formats: [android-key, apple, tpm, fido-u2f]
     webauthn:
-      # Fixed Android RP ID; the matching DAL statement is hosted by the
-      # Gorapeflutter organization Pages site. Keycloak remains a separate RP.
-      rp_id: gorapeflutter.github.io
+      # Official GorapeFlutter development/verification RP ID; DAL and AASA
+      # statements live under https://gorapeflutter.site/.well-known/ while
+      # Keycloak remains a separate RP (idp.gorapeflutter.site).
+      rp_id: gorapeflutter.site
       rp_display_name: Gorape
       rp_origins:
-        - https://gorapeflutter.github.io
-        - https://local.gorapeflutter.github.io:5173
-        - https://local.gorapeflutter.github.io:5174
+        - https://gorapeflutter.site
+        - https://app.gorapeflutter.site
+        - https://app.gorapeflutter.site:5173
+        - https://app.gorapeflutter.site:5174
+        - https://local.gorapeflutter.site:5173
+        - https://local.gorapeflutter.site:5174
+        - https://api.gorapeflutter.site
+        - https://api.gorapeflutter.site:8443
         - http://localhost:5173
         - https://localhost:5173
         - https://localhost:5174
         - http://localhost:8000
         - https://localhost:8443
-      portal_origin: "http://localhost:5173"
-      browser_api_origin: "http://localhost:8000"
-      attestation_conveyance: none
+      portal_origin: "https://app.gorapeflutter.site:5174"
+      browser_api_origin: "https://api.gorapeflutter.site:8443"
+      attestation_conveyance: direct
       user_verification: required
     web_origins:
+      - https://gorapeflutter.site
+      - https://app.gorapeflutter.site
+      - https://app.gorapeflutter.site:5173
+      - https://app.gorapeflutter.site:5174
+      - https://local.gorapeflutter.site:5173
+      - https://local.gorapeflutter.site:5174
       - http://localhost:5173
       - https://localhost:5173
       - https://localhost:5174
       - http://127.0.0.1:5173
-      - https://gorapeflutter.github.io
-      - https://local.gorapeflutter.github.io:5173
-      - https://local.gorapeflutter.github.io:5174
     platform:
-      issuer: http://localhost:8080/realms/gorape
+      issuer: https://idp.gorapeflutter.site:9443/realms/gorape
       provider_url: http://keycloak:8080/realms/gorape
       admin_roles: [gorape-platform-admin, admin]
     keycloak:

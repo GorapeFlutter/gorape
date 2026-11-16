@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/entity/request"
@@ -266,16 +267,30 @@ func (uc *passkeyDeviceUsecase) verifyRegistrationChallenge(
 		CredentialData: credentialData,
 	}
 	assuranceLevel := attestation.AssuranceLevel
-	if isHardwarePlatform(pending.Platform) {
-		assuranceLevel = model.AssuranceLevelHardwareAttested
+	if !model.ValidAssuranceLevel(assuranceLevel) || assuranceLevel == model.AssuranceLevelRejected {
+		return response.PasskeyRegistrationResult{}, repository.ErrAttestationPolicyDenied
 	}
+	var aaguid *uuid.UUID
+	if attestation.AAGUID != "" {
+		if parsed, parseErr := uuid.Parse(attestation.AAGUID); parseErr == nil {
+			aaguid = &parsed
+		}
+	}
+	evaluatedAt := time.Now().UTC()
 	att := model.Attestation{
+		AAGUID:             aaguid,
 		AttestationType:    attestation.Format,
 		SecurityLevel:      attestation.SecurityLevel,
 		AssuranceLevel:     assuranceLevel,
+		HardwareProtected:  attestation.HardwareProtected,
+		BackupEligible:     attestation.BackupEligible,
+		BackupState:        attestation.BackupState,
+		TrustSource:        attestation.TrustSource,
 		VerificationStatus: "verified",
 		VerifierVersion:    attestation.VerifierVersion,
-		EvidenceReference:  assuranceLevel,
+		AttestationCert:    attestation.AttestationCert,
+		LastEvaluatedAt:    &evaluatedAt,
+		EvidenceReference:  attestation.TrustSource,
 	}
 	if err := uc.store.RegisterDevice(ctx, &device, &key, &att, auth.Principal.ID); err != nil {
 		return response.PasskeyRegistrationResult{}, err
@@ -286,7 +301,7 @@ func (uc *passkeyDeviceUsecase) verifyRegistrationChallenge(
 			AttestationType:    attestation.Format,
 			SecurityLevel:      attestation.SecurityLevel,
 			AssuranceLevel:     assuranceLevel,
-			HardwareProtected:  attestation.HardwareProtected || isHardwarePlatform(pending.Platform),
+			HardwareProtected:  attestation.HardwareProtected,
 			BackupEligible:     attestation.BackupEligible,
 			BackupState:        attestation.BackupState,
 			VerificationStatus: "verified",
@@ -445,7 +460,6 @@ func (uc *passkeyDeviceUsecase) CreateProofRequest(ctx context.Context, auth mod
 	if err != nil {
 		return response.ProofRequestOptions{}, err
 	}
-	enableCrossDeviceTransports(options)
 	payload, err := json.Marshal(proofRequestSessionPayload{
 		Session:           session,
 		ServiceID:         serviceID,
@@ -536,6 +550,9 @@ func (uc *passkeyDeviceUsecase) VerifyProofRequest(ctx context.Context, auth mod
 	if !model.AssuranceSatisfies(actualAssurance, pending.RequiredAssurance) {
 		return response.ProofRequestVerifyResult{}, repository.ErrAttestationPolicyDenied
 	}
+	if err := uc.rp.AuthorizeAssurance(actualAssurance); err != nil {
+		return response.ProofRequestVerifyResult{}, err
+	}
 	user := repository.WebAuthnUser{
 		ID:                 append([]byte(nil), pending.PrincipalID[:]...),
 		AllowedUserHandles: principalUserHandles(pending.PrincipalID, pending.PrincipalSubject),
@@ -624,7 +641,10 @@ func (uc *passkeyDeviceUsecase) userCredentialsForProofRequest(
 		if !model.AssuranceSatisfies(assurance, requiredAssurance) {
 			continue
 		}
-		credential.Transport = withCrossDeviceTransports(credential.Transport)
+		if err := uc.rp.AuthorizeAssurance(assurance); err != nil {
+			continue
+		}
+		credential.Transport = ceremonyTransports(credential.Transport)
 		user.Credentials = append(user.Credentials, credential)
 		candidates[key.KeyIdentifier] = proofRequestCandidate{
 			DeviceID:       device.ID,
@@ -644,76 +664,43 @@ func (uc *passkeyDeviceUsecase) deviceAssuranceLevel(
 	backupEligible bool,
 	fallback string,
 ) string {
-	device, devErr := uc.store.Device(ctx, projectID, deviceID)
 	records, err := uc.store.Attestations(ctx, projectID, deviceID)
 	if err == nil && len(records) > 0 {
-		if records[0].VerificationStatus == "verified" && devErr == nil && isHardwarePlatform(device.Platform) {
-			return model.AssuranceLevelHardwareAttested
+		record := records[0]
+		if uc.rp != nil {
+			if level, reevaluated := uc.rp.ReevaluateAssurance(ctx, record); reevaluated {
+				status := record.VerificationStatus
+				if level == model.AssuranceLevelRejected {
+					status = "rejected"
+				}
+				if updateErr := uc.store.UpdateAttestationEvaluation(ctx, projectID, record.ID, level, status, time.Now().UTC()); updateErr == nil {
+					record.AssuranceLevel = level
+					record.VerificationStatus = status
+				}
+				return level
+			}
 		}
-		return records[0].EffectiveAssuranceLevel(backupEligible)
+		return record.EffectiveAssuranceLevel(backupEligible)
 	}
-	if devErr == nil && device.Status == "active" && isHardwarePlatform(device.Platform) {
-		return model.AssuranceLevelHardwareAttested
-	}
-	if model.ValidAssuranceLevel(fallback) {
+	if model.ValidAssuranceLevel(fallback) && fallback != model.AssuranceLevelRejected {
 		return fallback
 	}
-	return model.ResolveAssuranceLevel("none", backupEligible, true)
+	// A verified WebAuthn credential without attestation evidence is never
+	// hardware-attested. The platform label is metadata only.
+	return model.ResolveAssurance(model.AssuranceEvidence{
+		Verified:       true,
+		BackupEligible: backupEligible,
+	})
 }
 
-func isHardwarePlatform(platform string) bool {
-	switch strings.ToLower(strings.TrimSpace(platform)) {
-	case "android", "ios", "macos", "windows":
-		return true
-	default:
-		return false
+// GF-10042 — Preserves the transports reported by the authenticator during
+// registration. CDA ("hybrid") is a capability hint, not something the RP can
+// grant; injecting it would misrepresent the credential to the client.
+func ceremonyTransports(recorded []protocol.AuthenticatorTransport) []protocol.AuthenticatorTransport {
+	if len(recorded) == 0 {
+		return nil
 	}
-}
-
-func withCrossDeviceTransports(transports []protocol.AuthenticatorTransport) []protocol.AuthenticatorTransport {
-	out := append([]protocol.AuthenticatorTransport(nil), transports...)
-	for _, needed := range []protocol.AuthenticatorTransport{protocol.Internal, protocol.Hybrid} {
-		found := false
-		for _, t := range out {
-			if t == needed {
-				found = true
-				break
-			}
-		}
-		if !found {
-			out = append(out, needed)
-		}
-	}
-	return out
-}
-
-func enableCrossDeviceTransports(options map[string]any) {
-	rawList, ok := options["allowCredentials"].([]any)
-	if !ok {
-		return
-	}
-	for _, item := range rawList {
-		descriptor, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
-		existing, _ := descriptor["transports"].([]any)
-		seen := map[string]bool{}
-		merged := make([]string, 0, len(existing)+2)
-		for _, v := range existing {
-			if s, ok := v.(string); ok && s != "" && !seen[s] {
-				seen[s] = true
-				merged = append(merged, s)
-			}
-		}
-		for _, required := range []string{"internal", "hybrid"} {
-			if !seen[required] {
-				seen[required] = true
-				merged = append(merged, required)
-			}
-		}
-		descriptor["transports"] = merged
-	}
+	return append([]protocol.AuthenticatorTransport(nil), recorded...)
 }
 
 func (uc *passkeyDeviceUsecase) verifyAuthenticationChallenge(
@@ -747,6 +734,11 @@ func (uc *passkeyDeviceUsecase) verifyAuthenticationChallenge(
 	credential, err := unmarshalWebAuthnCredential(key.CredentialData)
 	if err != nil {
 		return errors.New("device is not registered with a WebAuthn passkey")
+	}
+	// GF-10043 — The same assurance policy applies to login/proof assertions.
+	assurance := uc.deviceAssuranceLevel(ctx, auth.Project.ID, device.ID, credential.Flags.BackupEligible, "")
+	if err := uc.rp.AuthorizeAssurance(assurance); err != nil {
+		return err
 	}
 	user := authWebAuthnUser(auth)
 	user.Credentials = []webauthn.Credential{credential}

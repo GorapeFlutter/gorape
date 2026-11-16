@@ -167,6 +167,9 @@ func (provider *FidoMDSProvider) ValidateStatusReports(ctx context.Context, repo
 
 // GF-10029 — Refreshes at nextUpdate and rejects stale metadata on update failure.
 func (provider *FidoMDSProvider) refreshIfNeeded(ctx context.Context) error {
+	if provider == nil {
+		return metadata.ErrNotInitialized
+	}
 	provider.mu.Lock()
 	defer provider.mu.Unlock()
 	if provider.provider != nil && time.Now().Before(provider.nextUpdate) {

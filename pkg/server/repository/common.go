@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/global"
@@ -170,6 +171,10 @@ func (rcvr *Store) PrincipalBySubject(ctx context.Context, project uuid.UUID, su
 // AttestationStore methods
 func (rcvr *Store) Attestations(ctx context.Context, project, device uuid.UUID) ([]model.Attestation, error) {
 	return rcvr.attestation.Attestations(ctx, project, device)
+}
+
+func (rcvr *Store) UpdateAttestationEvaluation(ctx context.Context, project, id uuid.UUID, assurance, status string, evaluatedAt time.Time) error {
+	return rcvr.attestation.UpdateAttestationEvaluation(ctx, project, id, assurance, status, evaluatedAt)
 }
 
 func mapNotFound(err error) error {

@@ -10,7 +10,7 @@ INSERT INTO projects (slug, name, issuer, realm, status)
 VALUES (
     'demo',
     'Gorape Demo',
-    'http://localhost:8080/realms/gorape',
+    'http://idp.gorapeflutter.site:8080/realms/gorape',
     'gorape',
     'active'
 )

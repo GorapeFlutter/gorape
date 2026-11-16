@@ -8,14 +8,24 @@ registration and proof additionally require a signed Keycloak access token
 whose `amr` claim contains `passkey`; password-only login remains read-only for
 device operations.
 
-The local Docker configuration uses `gorapeflutter.github.io` as the Gorape RP
-ID, separate from Keycloak's `localhost`. The organization Pages repository
-publishes the Android Digital Asset Links statement at
-`https://gorapeflutter.github.io/.well-known/assetlinks.json`. The API itself
-can remain on a local HTTPS endpoint; Android Credential Manager validates the
-RP domain and app association separately. This setup uses the current debug
-signing certificate and is for development only. Production must configure
-production signing fingerprints and trusted attestation roots.
+The local Docker configuration uses `gorapeflutter.site` as the Gorape RP ID,
+separate from Keycloak's `idp.gorapeflutter.site` (`*.gorapeflutter.site`
+resolves to `127.0.0.1` in local development). For Android Credential Manager
+and Apple Associated Domains, the public association files are served from
+`https://gorapeflutter.site/.well-known/assetlinks.json` and
+`https://gorapeflutter.site/.well-known/apple-app-site-association`. The API
+itself runs on `https://api.gorapeflutter.site:8443` (or `http://api.gorapeflutter.site:8000`);
+Android Credential Manager and Apple AuthenticationServices validate the RP
+domain and app association separately. Production deployments can substitute
+any custom domain in `etc/server.yaml` and must configure production signing
+fingerprints and trusted attestation roots.
+
+> **Deployment caveat:** the apex `gorapeflutter.site` currently has no public
+> A/AAAA record (only NS/SOA). External retrieval of the apex `/.well-known/`
+> association files by Google/Apple, and public TLS issuance, are therefore
+> unverified until DNS control is available. Local development uses the
+> `*.gorapeflutter.site -> 127.0.0.1` records and an explicit local CA; TLS
+> certificate verification must never be disabled as a workaround.
 
 ## Ceremony
 
@@ -25,9 +35,9 @@ production signing fingerprints and trusted attestation roots.
 2. The client passes the returned `public_key` options to its OS/browser
    credential provider and forwards the complete `PublicKeyCredential`
    response, including `clientDataJSON` and `attestationObject`.
-3. Gorape verifies the challenge, ceremony type, configured RP ID ([GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L88), [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L605)), exact allowed
+3. Gorape verifies the challenge, ceremony type, configured RP ID ([GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L99), [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L816)), exact allowed
    origin, credential ID, credential public key, format-specific attestation
-   statement, and trust chain before storing the device ([GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L294), [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L151)).
+   statement, and trust chain before storing the device ([GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L350), [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L152)).
 4. For proof, Gorape issues a new single-use WebAuthn request challenge. The
    provider signs it; Gorape validates the assertion and updates authenticator
    counter/backup state.
@@ -42,37 +52,116 @@ example, `tpm_attested` or `apple_anonymous_attestation`); it is not a claim
 about boot integrity, device uniqueness, revocation status, or ongoing
 compliance.
 
-Apply `migrations/000003_webauthn.up.sql` to every existing database before
-deploying the new server binary. It adds nullable WebAuthn credential state and
-allows the `web` and `linux` device platforms; legacy device rows remain valid.
+Apply `migrations/000003_webauthn.up.sql` and
+`migrations/000004_assurance.up.sql` to every existing database before
+deploying the new server binary. They add nullable WebAuthn credential state,
+persisted assurance evidence, and allow the `web` and `linux` device platforms;
+legacy device rows remain valid and are evaluated conservatively.
+
+## Assurance levels and policy
+
+The assurance level is derived only from verified server-side evidence. The
+client-supplied platform label is never used to promote a credential. The RP
+stores the verification status and the assurance status separately, so a
+successful `fmt=none` registration is `device_bound_unattested`, not
+`hardware_attested`.
+
+| Level | Verified registration | BE flag | Hardware attestation |
+| --- | --- | --- | --- |
+| `hardware_attested` | required | `BE=false` | required |
+| `device_bound_unattested` | required | `BE=false` | not required |
+| `standard_passkey` | required | `BE=true` (synchronizable) | ignored |
+| `rejected` | failed or unusable | any | any |
+
+`BE` is backup eligibility and is immutable for a credential. `BS` is backup
+state and may change; `BE=false` with `BS=true`, or a change to `BE` after
+registration, is rejected. A synchronizable credential is always
+`standard_passkey`, even when the authenticator also supplies a hardware
+attestation statement, because the key can leave the original device.
+
+Hardware protection is accepted only when the verified evidence establishes
+non-exportable key residency:
+
+* `android-key` with a verified TEE/StrongBox key description and locked,
+  verified boot;
+* `apple` anonymous attestation chained to the configured Apple roots;
+* `tpm` attestation chained to the configured TPM roots;
+* `fido-u2f` attestation chained to the configured U2F roots;
+* a FIDO MDS entry whose `keyProtection` includes `hardware`, `tee`,
+  `secure_element`, or `smart_card`.
+
+`packed` and self attestation do not by themselves prove hardware key
+protection. They remain `device_bound_unattested` unless another verified
+source (for example an MDS entry) adds hardware evidence. `fido_mds_verified`
+likewise records metadata verification; it does not imply hardware protection.
+
+The explicit policy controls registration and every later assertion:
+
+```yaml
+attestation:
+  webauthn:
+    assurance:
+      required: standard_passkey      # or device_bound_unattested / hardware_attested
+      allow_synced_passkeys: true     # false for high assurance
+      hardware_formats: [android-key, apple, tpm, fido-u2f]
+```
+
+`required: hardware_attested` requires `allow_synced_passkeys: false` and at
+least one hardware-capable format or FIDO MDS; this is validated at startup.
+External proof requests may raise the requirement with `required_assurance`,
+but cannot lower the service policy. The same level names are returned by
+registration and proof verification.
+
+## Cross-device authentication (CDA)
+
+CDA is an authenticator capability, not an RP policy. Gorape records the
+transports returned by the authenticator during registration and passes them
+back unchanged. It does not inject `hybrid` or `internal` into
+`allowCredentials`: an authenticator that did not advertise `hybrid` cannot be
+made CDA-capable by a hint. When the credential record has no transports, the
+RP omits the hint and lets the client choose. Device-bound keys generated by
+gf-app in the OS keystore (Apple Secure Enclave, Android Keystore, Windows
+CNG/TPM) are separate from WebAuthn credentials and are never substituted for a
+CDA assertion; CDA uses the FIDO credential held by the authenticator.
+
+## Metadata and revocation re-evaluation
+
+For MDS-backed credentials Gorape re-evaluates the stored AAGUID against the
+current signed metadata on assertion. A missing entry or an unacceptable
+authenticator status downgrades the credential to `rejected`. When an
+attestation certificate was retained and a revocation checker is configured,
+the leaf certificate is re-checked against CRL/OCSP subject to the configured
+cache TTL. The result and `last_evaluated_at` are persisted. Network failures
+and unknown status fail closed for high-assurance decisions.
 
 ## Default-deny policy
 
 Passkey registration is disabled until a Gorape RP ID/origin and an attestation
 policy are configured. `etc/server.yaml.example` intentionally has an empty
 format allowlist, `allow_none: false`, and `allow_self_attestation: false`.
-`etc/server.yaml.docker` is a local-only exception: it allows `fmt: none` for
-the Android debug ceremony, while the production example remains default-deny.
-Unknown formats, untrusted certificate chains, and missing trust anchors fail
-closed. The client's requested `direct` conveyance is only a preference; the
-response's actual `fmt` is authoritative.
+`etc/server.yaml.docker` requests `direct` attestation and rejects `fmt: none`
+so Android hardware-attestation support can be tested without silently
+accepting an unattested result. Unknown formats, untrusted certificate chains,
+and missing trust anchors fail closed. The client's requested `direct`
+conveyance is only a preference; the response's actual `fmt` is authoritative.
 
 ```yaml
 Application:
   Server:
     webauthn:
-      rp_id: gorape.example.com
+      rp_id: gorapeflutter.site
       rp_display_name: Gorape
       rp_origins:
-        - https://app.gorape.example.com
+        - https://gorapeflutter.site
+        - https://app.gorapeflutter.site
         # Android Credential Manager native origin, if used by this app:
         - android:apk-key-hash:BASE64URL_CERTIFICATE_HASH
       # gf-app hosts the Linux browser ceremony page; Gorape remains API-only.
-      portal_origin: https://app.gorape.example.com
-      browser_api_origin: https://api.gorape.example.com
+      portal_origin: https://app.gorapeflutter.site
+      browser_api_origin: https://api.gorapeflutter.site
       attestation_conveyance: direct
       user_verification: required
-    web_origins: [https://app.gorape.example.com]
+    web_origins: [https://app.gorapeflutter.site]
     attestation:
       webauthn:
         allowed_formats: [android-key, tpm, apple]
@@ -127,3 +216,13 @@ Provider behavior varies by OS version, account configuration, authenticator,
 and whether credentials are synced. The platform label sent by the client is
 metadata only; authorization and attestation assurance come from the verified
 WebAuthn response and server policy.
+
+## RP ID migration and credential re-enrollment
+
+WebAuthn credentials are cryptographically bound to their RP ID (`rpIdHash = SHA-256(rpId)` in `authenticatorData`). Changing `Application.Server.WebAuthn.rp_id` (for example from `gorapeflutter.github.io` or `localhost` to `gorapeflutter.site`, or from `gorapeflutter.site` to a custom production domain) makes previously enrolled WebAuthn credentials unusable under the new RP ID.
+
+When migrating RP IDs:
+1. Update `Application.Server.WebAuthn.rp_id`, `rp_origins`, `portal_origin`, `browser_api_origin`, and `web_origins` in `etc/server.yaml` (or `etc/server.yaml.docker`).
+2. Publish the updated `/.well-known/assetlinks.json` and `/.well-known/apple-app-site-association` on `https://<new-rp-id>/.well-known/`.
+3. Update the native app's Android `asset_statements` and Apple `com.apple.developer.associated-domains` (`webcredentials:<new-rp-id>`).
+4. Revoke existing devices bound to the old RP ID via `DELETE /v1/projects/{projectId}/devices/{deviceId}` and re-enroll each device under the new RP ID via `POST /v1/projects/{projectId}/devices/passkeys/registration/options` and `/verify` ([GF-10016](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L92).

@@ -63,11 +63,23 @@ type AndroidAttestationPolicyConfig struct {
 	MinimumBootPatchLevel   int                 `yaml:"minimum_boot_patch_level"`
 }
 type WebAuthnAttestationConfig struct {
-	AllowedFormats       []string            `yaml:"allowed_formats"`
-	AllowNone            bool                `yaml:"allow_none"`
-	AllowSelfAttestation bool                `yaml:"allow_self_attestation"`
-	TrustAnchors         map[string][]string `yaml:"trust_anchors"`
-	MDS                  WebAuthnMDSConfig   `yaml:"mds"`
+	AllowedFormats       []string                `yaml:"allowed_formats"`
+	AllowNone            bool                    `yaml:"allow_none"`
+	AllowSelfAttestation bool                    `yaml:"allow_self_attestation"`
+	TrustAnchors         map[string][]string     `yaml:"trust_anchors"`
+	MDS                  WebAuthnMDSConfig       `yaml:"mds"`
+	Assurance            WebAuthnAssuranceConfig `yaml:"assurance"`
+}
+type WebAuthnAssuranceConfig struct {
+	// Required is the minimum assurance level accepted for new registrations
+	// and later assertions. Empty defaults to standard_passkey.
+	Required string `yaml:"required"`
+	// AllowSyncedPasskeys permits backup-eligible (synchronizable) passkeys.
+	// High-assurance deployments set this to false.
+	AllowSyncedPasskeys *bool `yaml:"allow_synced_passkeys"`
+	// HardwareFormats lists attestation formats whose verified statement proves
+	// non-exportable hardware key residency.
+	HardwareFormats []string `yaml:"hardware_formats"`
 }
 type WebAuthnMDSConfig struct {
 	Enabled           bool   `yaml:"enabled"`
@@ -112,6 +124,7 @@ type KeycloakConfig struct {
 	Password     string `yaml:"password"`
 }
 type Server struct {
+	Host                    string                        `yaml:"host"`
 	Port                    int                           `yaml:"port"`
 	TLSPort                 int                           `yaml:"tls_port"`
 	TLSCertFile             string                        `yaml:"tls_cert_file"`
@@ -178,7 +191,12 @@ func NewBaseConfigWithContext(ctx context.Context) *BaseConfig {
 	return finishConfig(cfg)
 }
 
+// GF-10037 — Normalizes server listener, TLS, OIDC, attestation, and WebAuthn configuration.
 func finishConfig(cfg YamlConfig) *BaseConfig {
+	cfg.Application.Server.Host = strings.TrimSpace(cfg.Application.Server.Host)
+	if host := strings.TrimSpace(os.Getenv("GORAPE_SERVER_HOST")); host != "" {
+		cfg.Application.Server.Host = host
+	}
 	if cfg.Application.Server.Port == 0 {
 		cfg.Application.Server.Port = 8000
 	}
@@ -255,6 +273,33 @@ func finishConfig(cfg YamlConfig) *BaseConfig {
 	}
 	if cfg.Application.Server.WebAuthn.UserVerification == "" {
 		cfg.Application.Server.WebAuthn.UserVerification = "required"
+	}
+	// GF-10044 — Normalizes the explicit assurance policy.
+	assurance := &cfg.Application.Server.Attestation.WebAuthn.Assurance
+	if assurance.Required == "" {
+		assurance.Required = "standard_passkey"
+	}
+	assurance.Required = strings.ToLower(strings.TrimSpace(assurance.Required))
+	switch assurance.Required {
+	case "standard_passkey", "device_bound_unattested", "hardware_attested":
+	default:
+		log.Fatalf("configuration: attestation.webauthn.assurance.required must be standard_passkey, device_bound_unattested, or hardware_attested")
+	}
+	if assurance.AllowSyncedPasskeys == nil {
+		allow := true
+		assurance.AllowSyncedPasskeys = &allow
+	}
+	if assurance.Required == "hardware_attested" && *assurance.AllowSyncedPasskeys {
+		log.Fatalf("configuration: attestation.webauthn.assurance.allow_synced_passkeys must be false when required is hardware_attested")
+	}
+	if len(assurance.HardwareFormats) == 0 {
+		assurance.HardwareFormats = []string{"android-key", "apple", "tpm", "fido-u2f"}
+	}
+	for i, format := range assurance.HardwareFormats {
+		assurance.HardwareFormats[i] = strings.ToLower(strings.TrimSpace(format))
+		if assurance.HardwareFormats[i] == "" {
+			log.Fatalf("configuration: attestation.webauthn.assurance.hardware_formats must not contain empty values")
+		}
 	}
 	if cfg.Logger.Component == "" {
 		cfg.Logger.Component = "gorape"

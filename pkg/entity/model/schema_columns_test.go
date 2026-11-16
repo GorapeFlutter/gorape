@@ -20,7 +20,7 @@ func TestPersistedModelsMatchCurrentSchema(t *testing.T) {
 		{"principal", &Principal{}, "principals", []string{"id", "project_id", "issuer", "subject", "created_at"}},
 		{"device", &Device{}, "devices", []string{"id", "project_id", "owner_id", "platform", "display_name", "status", "registered_at", "last_verified_at", "revoked_at", "version"}},
 		{"device key", &DeviceKey{}, "device_keys", []string{"id", "project_id", "device_id", "public_key", "key_identifier", "algorithm", "credential_data", "status", "created_at"}},
-		{"attestation", &Attestation{}, "attestations", []string{"id", "project_id", "key_id", "attestation_type", "security_level", "verification_status", "verifier_version", "verified_at", "evidence_reference"}},
+		{"attestation", &Attestation{}, "attestations", []string{"id", "project_id", "key_id", "aaguid", "assurance_level", "hardware_protected", "backup_eligible", "backup_state", "trust_source", "attestation_certificate", "attestation_type", "security_level", "verification_status", "verifier_version", "verified_at", "last_evaluated_at", "evidence_reference"}},
 		{"device event", &DeviceEvent{}, "device_events", []string{"id", "project_id", "device_id", "actor_id", "event_type", "result", "occurred_at"}},
 		{"device group binding", &DeviceGroupBinding{}, "device_group_bindings", []string{"id", "project_id", "device_id", "group_id", "status", "created_at"}},
 		{"role definition", &RoleDefinition{}, "role_definitions", []string{"id", "project_id", "key", "name", "permissions", "keycloak_role", "builtin", "created_at", "updated_at"}},

@@ -22,7 +22,7 @@ func Main(conf config.BaseConfig) {
 
 	handler := InitRouter(conf)
 	httpServer := &http.Server{
-		Addr:              fmt.Sprintf(":%d", serverConfig.Port),
+		Addr:              fmt.Sprintf("%s:%d", serverConfig.Host, serverConfig.Port),
 		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
@@ -35,7 +35,7 @@ func Main(conf config.BaseConfig) {
 	}
 
 	tlsServer := &http.Server{
-		Addr:              fmt.Sprintf(":%d", serverConfig.TLSPort),
+		Addr:              fmt.Sprintf("%s:%d", serverConfig.Host, serverConfig.TLSPort),
 		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
 		TLSConfig:         &tls.Config{MinVersion: tls.VersionTLS12},

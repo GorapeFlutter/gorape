@@ -10,6 +10,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -110,6 +111,16 @@ func TestFidoMDSMetadataProviderRejectsRevokedAuthenticatorStatus(t *testing.T) 
 	err := provider.ValidateStatusReports(context.Background(), []metadata.StatusReport{{Status: metadata.Revoked}})
 	if err == nil {
 		t.Fatal("revoked authenticator status should be rejected")
+	}
+}
+
+func TestNilFidoMDSProviderFailsClosedWithoutPanicking(t *testing.T) {
+	var provider *FidoMDSProvider
+	if _, err := provider.GetEntry(context.Background(), uuid.Nil); !errors.Is(err, metadata.ErrNotInitialized) {
+		t.Fatalf("nil provider GetEntry error = %v, want ErrNotInitialized", err)
+	}
+	if err := provider.ValidateStatusReports(context.Background(), nil); !errors.Is(err, metadata.ErrNotInitialized) {
+		t.Fatalf("nil provider ValidateStatusReports error = %v, want ErrNotInitialized", err)
 	}
 }
 

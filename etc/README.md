@@ -28,10 +28,14 @@ make build
 `etc/keycloak/gorape-realm.json` is imported automatically by the Keycloak container
 (`start-dev --import-realm`).
 
-- Realm: `gorape` (`http://localhost:8080/realms/gorape`)
+- Realm: `gorape` (`http://idp.gorapeflutter.site:8080/realms/gorape`)
 - Public client: `gorape-client` (Authorization Code + PKCE, `S256`)
 - API audience: `gorape-api`
-- Redirect URI: `http://127.0.0.1:8400/callback`
+- Redirect URIs:
+  - CLI: `http://127.0.0.1:8400/callback`
+  - Android / iOS / macOS: `com.gorapeflutter.gfapp:/oauth2redirect`
+  - Windows / Linux: `http://127.0.0.1:8401/oauth2redirect`
+  - Web: `https://app.gorapeflutter.site/auth.html`, `https://app.gorapeflutter.site:5000/auth.html`, `http://localhost:5000/auth.html`
 - Development users:
   - `gorape-admin` / `ChangeMe123!` (temporary; change on first login)
   - `user01` ... `user50` / `Password123!`
@@ -47,12 +51,12 @@ requests ACR `gorape-passkey`, the client policy selects the
 `gorape-passkey-loginless` flow, and the passwordless WebAuthn execution emits
 AMR `passkey`. This flow has no username/password execution.
 
-The Docker-only Gorape RP configuration uses `localhost` and the current
-Android debug signing origin, with `fmt: none` enabled to allow local device
-testing. Keycloak also uses `localhost` in this compose setup, so this is not
-RP-ID isolation and must not be used in production. For another debug signing
-key, update `webauthn.rp_origins`; production must use separate RP domains,
-Digital Asset Links, and configured attestation trust roots.
+The Docker Gorape RP configuration uses `gorapeflutter.site` as `webauthn.rp_id`
+(separate from Keycloak's `idp.gorapeflutter.site`) and allows `fmt: none` to
+enable local device testing. For another debug or release signing key, update
+`webauthn.rp_origins` and `https://gorapeflutter.site/.well-known/assetlinks.json`;
+production must use publicly trusted TLS, Digital Asset Links / AASA, and
+configured attestation trust roots (`allow_none: false`).
 
 Keycloak realm/client roles and group paths under `/gorape/projects/<slug>/...`
 are resolved during every Gorape authorization decision. Gorape role bindings in
@@ -114,6 +118,7 @@ API and Gorape in one PostgreSQL transaction. See
 ```yaml
 Application:
   Server:
+    host: ""
     port: 8000
     oidc:
       audience: gorape-api
@@ -122,11 +127,11 @@ Application:
     attestation:
       android_trust_anchors: []
     platform:
-      issuer: http://localhost:8080/realms/gorape
+      issuer: http://idp.gorapeflutter.site:8080/realms/gorape
       provider_url: ""
       admin_roles: [gorape-platform-admin, admin]
     keycloak:
-      base_url: http://localhost:8080
+      base_url: http://idp.gorapeflutter.site:8080
       auth_realm: master
       admin_realm: gorape
       client_id: admin-cli
@@ -144,6 +149,7 @@ Redis:
 The Docker configuration maps:
 
 ```yaml
+http://idp.gorapeflutter.site:8080/realms/gorape: http://keycloak:8080/realms/gorape
 http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
 ```
 
@@ -154,9 +160,9 @@ http://localhost:8080/realms/gorape: http://keycloak:8080/realms/gorape
 ```yaml
 Application:
   Client:
-    ServerEndpoint: http://localhost:8000
+    ServerEndpoint: http://api.gorapeflutter.site:8000
     oidc:
-      issuer_url: http://localhost:8080/realms/gorape
+      issuer_url: http://idp.gorapeflutter.site:8080/realms/gorape
       client_id: gorape-client
       redirect_url: http://127.0.0.1:8400/callback
       scopes: [openid, profile]
@@ -183,11 +189,12 @@ Gorape does not support email/password or client-secret login for CLI clients.
   `config/generated/tls/` directory and mounts the server certificate/key
   read-only.
 - The generated local CA is not a production CA and only protects the local API
-  transport. Android Credential Manager uses the fixed
-  `gorapeflutter.github.io` RP ID and its public Digital Asset Links statement;
-  the statement must include `delegate_permission/common.get_login_creds` and
+  transport. Android Credential Manager uses the `gorapeflutter.site` RP ID (or a
+  custom configured RP ID) and its public Digital Asset Links statement at
+  `https://gorapeflutter.site/.well-known/assetlinks.json`; the statement must
+  include `delegate_permission/common.get_login_creds` and
   `delegate_permission/common.handle_all_urls`. The current debug signing
   fingerprint is development-only.
 - The bundled passwords and `sslRequired: none` are for local development only.
-- Production issuers must use HTTPS; plain HTTP is accepted only for localhost.
+- Production issuers must use HTTPS; plain HTTP is accepted only for local development (`localhost`, `127.0.0.1`, `*.gorapeflutter.site`).
 - Change `gorape-admin`'s temporary password on first login.

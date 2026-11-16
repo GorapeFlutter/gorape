@@ -21,7 +21,7 @@ func main() {
 		fmt.Println("ok")
 		return nil
 	}}
-	root.Flags().StringVar(&endpoint, "endpoint", "http://localhost:8000", "Gorape endpoint")
+	root.Flags().StringVar(&endpoint, "endpoint", "http://api.gorapeflutter.site:8000", "Gorape endpoint")
 	if root.Execute() != nil {
 		os.Exit(1)
 	}

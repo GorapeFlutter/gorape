@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -41,6 +42,9 @@ type WebAuthnRPConfig struct {
 	AllowNone             bool
 	AllowSelfAttestation  bool
 	TrustAnchors          map[string][]string
+	RequiredAssurance     string
+	AllowSyncedPasskeys   *bool
+	HardwareFormats       []string
 	ChallengeTTL          time.Duration
 	MDS                   metadata.Provider
 	RevocationChecker     *CertificateRevocationChecker
@@ -58,6 +62,9 @@ type WebAuthnRP struct {
 	mds               metadata.Provider
 	revocationChecker *CertificateRevocationChecker
 	challengeTTL      time.Duration
+	requiredAssurance string
+	allowSynced       bool
+	hardwareFormats   map[string]bool
 }
 
 // WebAuthnUser is the account identity and the credential set presented to
@@ -79,14 +86,20 @@ type WebAuthnAttestationResult struct {
 	Format            string
 	SecurityLevel     string
 	AssuranceLevel    string
+	AAGUID            string
 	HardwareProtected bool
 	BackupEligible    bool
 	BackupState       bool
+	TrustSource       string
+	MetadataVerified  bool
+	RevocationChecked bool
+	AttestationCert   []byte
 	VerifierVersion   string
 }
 
 // GF-10010 — Validates RP/attestation configuration and constructs the WebAuthn RP.
 func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
+	config.MDS = normalizeMetadataProvider(config.MDS)
 	if LoggerInstance != nil {
 		LoggerInstance.DEBUG("", global.SRNWA1, "NewWebAuthnRP start", map[string]interface{}{"rp_id": config.RPID})
 	}
@@ -134,6 +147,9 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 	default:
 		return nil, fmt.Errorf("invalid WebAuthn user_verification %q", config.UserVerification)
 	}
+	if verification != protocol.VerificationRequired {
+		return nil, errors.New("WebAuthn user_verification must be required for the GF assurance policy")
+	}
 
 	conveyance := protocol.ConveyancePreference(config.AttestationConveyance)
 	if conveyance == "" {
@@ -155,6 +171,45 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 			return nil, fmt.Errorf("unsupported WebAuthn attestation format %q", format)
 		}
 		allowed[format] = true
+	}
+
+	requiredAssurance := bytesToLowerTrim(config.RequiredAssurance)
+	if requiredAssurance == "" {
+		requiredAssurance = model.AssuranceLevelStandardPasskey
+	}
+	if !model.ValidAssuranceLevel(requiredAssurance) || requiredAssurance == model.AssuranceLevelRejected {
+		return nil, fmt.Errorf("invalid required WebAuthn assurance level %q", config.RequiredAssurance)
+	}
+	allowSynced := true
+	if config.AllowSyncedPasskeys != nil {
+		allowSynced = *config.AllowSyncedPasskeys
+	}
+	if requiredAssurance == model.AssuranceLevelHardwareAttested && allowSynced {
+		return nil, errors.New("hardware_attested WebAuthn policy must not allow synchronizable passkeys")
+	}
+	hardwareFormats := make(map[string]bool)
+	hardwareFormatList := config.HardwareFormats
+	if len(hardwareFormatList) == 0 {
+		hardwareFormatList = []string{"android-key", "apple", "tpm", "fido-u2f"}
+	}
+	for _, format := range hardwareFormatList {
+		format = bytesToLowerTrim(format)
+		if !supportedTrustedFormat(format) {
+			return nil, fmt.Errorf("unsupported hardware-attestation format %q", format)
+		}
+		hardwareFormats[format] = true
+	}
+	if requiredAssurance == model.AssuranceLevelHardwareAttested {
+		hardwareCapable := config.MDS != nil
+		for format := range allowed {
+			if hardwareFormats[format] {
+				hardwareCapable = true
+				break
+			}
+		}
+		if !hardwareCapable {
+			return nil, errors.New("hardware_attested WebAuthn policy requires a hardware-capable attestation format or FIDO MDS")
+		}
 	}
 
 	selection := protocol.AuthenticatorSelection{
@@ -224,7 +279,27 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 		allowSelf: config.AllowSelfAttestation, trustRoots: roots, mds: config.MDS,
 		revocationChecker: config.RevocationChecker,
 		challengeTTL:      config.ChallengeTTL,
+		requiredAssurance: requiredAssurance,
+		allowSynced:       allowSynced,
+		hardwareFormats:   hardwareFormats,
 	}, nil
+}
+
+// A nil *FidoMDSProvider assigned to metadata.Provider is a non-nil interface.
+// Normalize nil-able implementations before passing them to go-webauthn, which
+// invokes the provider during attestation validation.
+func normalizeMetadataProvider(provider metadata.Provider) metadata.Provider {
+	if provider == nil {
+		return nil
+	}
+	value := reflect.ValueOf(provider)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if value.IsNil() {
+			return nil
+		}
+	}
+	return provider
 }
 
 func (rp *WebAuthnRP) RPID() string {
@@ -328,11 +403,92 @@ func (rp *WebAuthnRP) VerifyRegistration(ctx context.Context, user WebAuthnUser,
 	}
 	result.BackupEligible = stored.Flags.BackupEligible
 	result.BackupState = stored.Flags.BackupState
-	result.AssuranceLevel = model.ResolveAssuranceLevel(result.SecurityLevel, stored.Flags.BackupEligible, true)
-	if !rp.allowNone && !rp.allowSelf && result.AssuranceLevel != model.AssuranceLevelHardwareAttested {
-		return nil, WebAuthnAttestationResult{}, fmt.Errorf("%w: high-assurance policy requires hardware_attested (got %s)", ErrAttestationPolicyDenied, result.AssuranceLevel)
+	result.AssuranceLevel = model.ResolveAssurance(model.AssuranceEvidence{
+		Verified:          true,
+		SecurityLevel:     result.SecurityLevel,
+		HardwareProtected: result.HardwareProtected,
+		BackupEligible:    stored.Flags.BackupEligible,
+		BackupState:       stored.Flags.BackupState,
+		MetadataVerified:  result.MetadataVerified,
+		RevocationChecked: result.RevocationChecked,
+		TrustSource:       result.TrustSource,
+	})
+	// GF-10040 — Enforces the configured assurance policy at registration.
+	if err := rp.enforceAssurance(result); err != nil {
+		return nil, WebAuthnAttestationResult{}, err
 	}
 	return stored, result, nil
+}
+
+// enforceAssurance applies the configured per-assurance policy to verified
+// registration evidence. It never uses the client-supplied platform label.
+func (rp *WebAuthnRP) enforceAssurance(result WebAuthnAttestationResult) error {
+	if result.BackupEligible && !rp.allowSynced {
+		return fmt.Errorf("%w: synchronizable passkeys are not allowed by policy", ErrAttestationPolicyDenied)
+	}
+	if rp.requiredAssurance == model.AssuranceLevelHardwareAttested &&
+		(!result.HardwareProtected || result.BackupEligible) {
+		return fmt.Errorf("%w: hardware_attested requires a verified hardware-backed, non-synchronizable key (got %s)", ErrAttestationPolicyDenied, result.AssuranceLevel)
+	}
+	if !model.AssuranceSatisfies(result.AssuranceLevel, rp.requiredAssurance) {
+		return fmt.Errorf("%w: required assurance %s (got %s)", ErrAttestationPolicyDenied, rp.requiredAssurance, result.AssuranceLevel)
+	}
+	return nil
+}
+
+// AuthorizeAssurance enforces the service-level assurance policy for a
+// previously evaluated credential at authentication time.
+func (rp *WebAuthnRP) AuthorizeAssurance(level string) error {
+	if rp == nil {
+		return ErrAttestationPolicyDenied
+	}
+	if !rp.allowSynced && level == model.AssuranceLevelStandardPasskey {
+		return fmt.Errorf("%w: synchronizable passkeys are not allowed by policy", ErrAttestationPolicyDenied)
+	}
+	if !model.AssuranceSatisfies(level, rp.requiredAssurance) {
+		return fmt.Errorf("%w: required assurance %s (got %s)", ErrAttestationPolicyDenied, rp.requiredAssurance, level)
+	}
+	return nil
+}
+
+// GF-10041 — Re-evaluates a stored MDS-backed attestation against current
+// metadata status. A status change downgrades or rejects the credential.
+func (rp *WebAuthnRP) ReevaluateAssurance(ctx context.Context, record model.Attestation) (string, bool) {
+	if rp == nil {
+		return record.EffectiveAssuranceLevel(record.BackupEligible), false
+	}
+	reevaluated := false
+	if len(record.AttestationCert) > 0 && rp.revocationChecker != nil {
+		reevaluated = true
+		certificate, err := x509.ParseCertificate(record.AttestationCert)
+		if err != nil {
+			return model.AssuranceLevelRejected, true
+		}
+		if err := rp.revocationChecker.Check(ctx, certificate); err != nil {
+			return model.AssuranceLevelRejected, true
+		}
+	}
+	if rp.mds == nil || record.TrustSource != "fido_mds" || record.AAGUID == nil {
+		return record.EffectiveAssuranceLevel(record.BackupEligible), reevaluated
+	}
+	entry, err := rp.mds.GetEntry(ctx, *record.AAGUID)
+	if err != nil || entry == nil {
+		return model.AssuranceLevelRejected, true
+	}
+	if err := rp.mds.ValidateStatusReports(ctx, entry.StatusReports); err != nil {
+		return model.AssuranceLevelRejected, true
+	}
+	hardware := rp.formatProvesHardware(record.AttestationType) ||
+		(record.HardwareProtected && metadataHardwareProtected(entry))
+	return model.ResolveAssurance(model.AssuranceEvidence{
+		Verified:          record.VerificationStatus == "verified",
+		SecurityLevel:     record.SecurityLevel,
+		HardwareProtected: hardware,
+		BackupEligible:    record.BackupEligible,
+		BackupState:       record.BackupState,
+		MetadataVerified:  true,
+		TrustSource:       record.TrustSource,
+	}), true
 }
 
 // GF-10014 — Creates an assertion challenge for an enrolled WebAuthn credential.
@@ -397,16 +553,18 @@ func (rp *WebAuthnRP) VerifyAuthentication(user WebAuthnUser, session webauthn.S
 func (rp *WebAuthnRP) verifyTrust(ctx context.Context, format string, attestation protocol.AttestationObject) (WebAuthnAttestationResult, error) {
 	backupEligible := attestation.AuthData.Flags.HasBackupEligible()
 	backupState := attestation.AuthData.Flags.HasBackupState()
+	aaguid := attestationAAGUID(attestation)
 	if format == string(protocol.AttestationFormatNone) {
-		return WebAuthnAttestationResult{
+		return newWebAuthnAttestationResult(WebAuthnAttestationResult{
 			Format:            format,
 			SecurityLevel:     "none",
-			AssuranceLevel:    model.ResolveAssuranceLevel("none", backupEligible, true),
+			AAGUID:            aaguid,
 			HardwareProtected: false,
 			BackupEligible:    backupEligible,
 			BackupState:       backupState,
+			TrustSource:       "none",
 			VerifierVersion:   "gorape-webauthn-v1",
-		}, nil
+		}), nil
 	}
 	chain, hasX5C, err := attestationCertificates(attestation)
 	if err != nil {
@@ -414,15 +572,16 @@ func (rp *WebAuthnRP) verifyTrust(ctx context.Context, format string, attestatio
 	}
 	if !hasX5C {
 		if rp.allowSelf && format == string(protocol.AttestationFormatPacked) {
-			return WebAuthnAttestationResult{
+			return newWebAuthnAttestationResult(WebAuthnAttestationResult{
 				Format:            format,
 				SecurityLevel:     "self_attested",
-				AssuranceLevel:    model.ResolveAssuranceLevel("self_attested", backupEligible, true),
+				AAGUID:            aaguid,
 				HardwareProtected: false,
 				BackupEligible:    backupEligible,
 				BackupState:       backupState,
+				TrustSource:       "self",
 				VerifierVersion:   "gorape-webauthn-v1",
-			}, nil
+			}), nil
 		}
 		return WebAuthnAttestationResult{}, fmt.Errorf("%w: format %q has no trusted certificate chain", ErrAttestationPolicyDenied, format)
 	}
@@ -432,7 +591,7 @@ func (rp *WebAuthnRP) verifyTrust(ctx context.Context, format string, attestatio
 		}
 	}
 	if rp.mds != nil {
-		aaguid, err := uuid.FromBytes(attestation.AuthData.AttData.AAGUID)
+		aaguidValue, err := uuid.FromBytes(attestation.AuthData.AttData.AAGUID)
 		if err != nil {
 			return WebAuthnAttestationResult{}, fmt.Errorf("invalid WebAuthn AAGUID: %w", err)
 		}
@@ -440,21 +599,31 @@ func (rp *WebAuthnRP) verifyTrust(ctx context.Context, format string, attestatio
 		if !ok {
 			return WebAuthnAttestationResult{}, fmt.Errorf("%w: MDS trust validation requires x5c", ErrAttestationPolicyDenied)
 		}
-		if err := protocol.ValidateMetadata(ctx, rp.mds, aaguid, "", format, x5cs); err != nil {
+		if err := protocol.ValidateMetadata(ctx, rp.mds, aaguidValue, "", format, x5cs); err != nil {
 			return WebAuthnAttestationResult{}, fmt.Errorf("WebAuthn FIDO MDS validation: %w", err)
 		}
+		entry, entryErr := rp.mds.GetEntry(ctx, aaguidValue)
+		if entryErr != nil {
+			return WebAuthnAttestationResult{}, fmt.Errorf("WebAuthn FIDO MDS entry lookup: %w", entryErr)
+		}
+		revocationChecked := false
 		if err := rp.checkCertificateRevocation(ctx, chain); err != nil {
 			return WebAuthnAttestationResult{}, err
 		}
-		return WebAuthnAttestationResult{
+		revocationChecked = rp.revocationChecker != nil
+		return newWebAuthnAttestationResult(WebAuthnAttestationResult{
 			Format:            format,
 			SecurityLevel:     "fido_mds_verified",
-			AssuranceLevel:    model.ResolveAssuranceLevel("fido_mds_verified", backupEligible, true),
-			HardwareProtected: true,
+			AAGUID:            aaguid,
+			HardwareProtected: rp.formatProvesHardware(format) || metadataHardwareProtected(entry),
 			BackupEligible:    backupEligible,
 			BackupState:       backupState,
+			TrustSource:       "fido_mds",
+			MetadataVerified:  true,
+			RevocationChecked: revocationChecked,
+			AttestationCert:   chain[0].Raw,
 			VerifierVersion:   "gorape-webauthn-mds-v1",
-		}, nil
+		}), nil
 	}
 	roots := rp.trustRoots[format]
 	if roots == nil || len(roots.Subjects()) == 0 {
@@ -474,15 +643,76 @@ func (rp *WebAuthnRP) verifyTrust(ctx context.Context, format string, attestatio
 		return WebAuthnAttestationResult{}, err
 	}
 	secLevel := attestationSecurityLevel(format)
-	return WebAuthnAttestationResult{
+	return newWebAuthnAttestationResult(WebAuthnAttestationResult{
 		Format:            format,
 		SecurityLevel:     secLevel,
-		AssuranceLevel:    model.ResolveAssuranceLevel(secLevel, backupEligible, true),
-		HardwareProtected: true,
+		AAGUID:            aaguid,
+		HardwareProtected: rp.formatProvesHardware(format),
 		BackupEligible:    backupEligible,
 		BackupState:       backupState,
+		TrustSource:       "trust_anchor",
+		RevocationChecked: rp.revocationChecker != nil,
+		AttestationCert:   chain[0].Raw,
 		VerifierVersion:   "gorape-webauthn-v1",
-	}, nil
+	}), nil
+}
+
+// Derives assurance from the verified evidence on the result.
+func newWebAuthnAttestationResult(result WebAuthnAttestationResult) WebAuthnAttestationResult {
+	result.AssuranceLevel = model.ResolveAssurance(model.AssuranceEvidence{
+		Verified:          true,
+		SecurityLevel:     result.SecurityLevel,
+		HardwareProtected: result.HardwareProtected,
+		BackupEligible:    result.BackupEligible,
+		BackupState:       result.BackupState,
+		MetadataVerified:  result.MetadataVerified,
+		RevocationChecked: result.RevocationChecked,
+		TrustSource:       result.TrustSource,
+	})
+	return result
+}
+
+func (rp *WebAuthnRP) formatProvesHardware(format string) bool {
+	if len(rp.hardwareFormats) == 0 {
+		switch format {
+		case string(protocol.AttestationFormatAndroidKey),
+			string(protocol.AttestationFormatApple),
+			string(protocol.AttestationFormatTPM),
+			string(protocol.AttestationFormatFIDOUniversalSecondFactor):
+			return true
+		default:
+			return false
+		}
+	}
+	return rp.hardwareFormats[format]
+}
+
+// metadataHardwareProtected reads the FIDO MDS keyProtection statement. Only
+// locally resident hardware protection qualifies; remote_handle and software
+// are deliberately excluded.
+func metadataHardwareProtected(entry *metadata.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	for _, protection := range entry.MetadataStatement.KeyProtection {
+		switch strings.ToLower(strings.TrimSpace(protection)) {
+		case "hardware", "tee", "secure_element", "smart_card":
+			return true
+		}
+	}
+	return false
+}
+
+func attestationAAGUID(attestation protocol.AttestationObject) string {
+	value := attestation.AuthData.AttData.AAGUID
+	if len(value) == 0 {
+		return ""
+	}
+	aaguid, err := uuid.FromBytes(value)
+	if err != nil {
+		return ""
+	}
+	return aaguid.String()
 }
 
 // verifyWebAuthnAndroidKeyLeaf enforces TEE/StrongBox hardware backing and

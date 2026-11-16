@@ -10,6 +10,7 @@ import (
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/server/repository"
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 )
@@ -95,31 +96,20 @@ func TestBrowserOptionsRejectsNonLinuxChallenge(t *testing.T) {
 	}
 }
 
-func TestEnableCrossDeviceTransportsIncludesInternalAndHybrid(t *testing.T) {
-	options := map[string]any{
-		"allowCredentials": []any{
-			map[string]any{
-				"type":       "public-key",
-				"id":         "cred-1",
-				"transports": []any{"internal"},
-			},
-		},
+func TestCeremonyTransportsPreserveAuthenticatorHints(t *testing.T) {
+	// CDA is an authenticator capability. The RP must not inject "hybrid" or
+	// "internal" when registration did not report them.
+	if got := ceremonyTransports(nil); got != nil {
+		t.Fatalf("empty transports = %v, want nil without injected hints", got)
 	}
-	enableCrossDeviceTransports(options)
-	list := options["allowCredentials"].([]any)
-	desc := list[0].(map[string]any)
-	transports := desc["transports"].([]string)
-	hasInternal, hasHybrid := false, false
-	for _, tr := range transports {
-		if tr == "internal" {
-			hasInternal = true
-		}
-		if tr == "hybrid" {
-			hasHybrid = true
-		}
+	recorded := []protocol.AuthenticatorTransport{protocol.Internal, protocol.Hybrid}
+	got := ceremonyTransports(recorded)
+	if len(got) != 2 || got[0] != protocol.Internal || got[1] != protocol.Hybrid {
+		t.Fatalf("transports = %v, want the recorded internal+hybrid hints", got)
 	}
-	if !hasInternal || !hasHybrid {
-		t.Fatalf("allowCredentials transports = %v, want internal and hybrid", transports)
+	got[0] = protocol.USB
+	if recorded[0] != protocol.Internal {
+		t.Fatal("ceremony transports must copy the recorded slice")
 	}
 }
 
@@ -135,5 +125,16 @@ func TestVerifyCallerServiceIdentityEnforcesTokenClientBinding(t *testing.T) {
 	}
 	if err := verifyCallerServiceIdentity(auth, "other-service"); !errors.Is(err, ErrForbidden) {
 		t.Fatalf("mismatched service_id error = %v, want ErrForbidden", err)
+	}
+}
+
+func TestSupportedPasskeyPlatformsIncludeWindows(t *testing.T) {
+	for _, platform := range []string{"android", "ios", "macos", "windows", "linux", "web"} {
+		if !supportedPasskeyPlatform(platform) {
+			t.Fatalf("platform %q must be supported", platform)
+		}
+	}
+	if supportedPasskeyPlatform("unknown") {
+		t.Fatal("unknown platform must not be accepted")
 	}
 }

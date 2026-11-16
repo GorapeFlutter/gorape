@@ -11,11 +11,11 @@ services:
       GORAPE_PROJECT_SLUG: "gorape"
       SERVICE_ID: "gorape-sample-service"
       KEYCLOAK_TOKEN_URL: "http://keycloak:8080/realms/gorape/protocol/openid-connect/token"
-      KEYCLOAK_PUBLIC_URL: "http://localhost:8080/realms/gorape"
+      KEYCLOAK_PUBLIC_URL: "${KEYCLOAK_PUBLIC_URL:-http://idp.gorapeflutter.site:8080/realms/gorape}"
       KEYCLOAK_CLIENT_ID: "gorape-sample-service"
       KEYCLOAK_CLIENT_SECRET: "gorape-sample-service-secret"
       WEB_OIDC_CLIENT_ID: "gorape-sample-web"
-      ALLOWED_CORS_ORIGINS: "http://localhost:5173,https://localhost:5173,https://localhost:5174,http://127.0.0.1:5173,https://local.gorapeflutter.github.io:5173,https://local.gorapeflutter.github.io:5174,https://gorapeflutter.github.io"
+      ALLOWED_CORS_ORIGINS: "${ALLOWED_CORS_ORIGINS:-https://gorapeflutter.site,https://app.gorapeflutter.site,https://app.gorapeflutter.site:5173,https://app.gorapeflutter.site:5174,https://local.gorapeflutter.site:5173,https://local.gorapeflutter.site:5174,http://localhost:5173,https://localhost:5173,https://localhost:5174,http://127.0.0.1:5173}"
     ports:
       - "8090:8090"
     depends_on:

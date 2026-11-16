@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"time"
 
 	"github.com/Gorapeflutter/gorape/pkg/entity/model"
 	"github.com/Gorapeflutter/gorape/pkg/entity/request"
@@ -69,7 +70,27 @@ func (rcvr *deviceUsecase) VerifyRegistration(ctx context.Context, a model.AuthC
 	}
 	d := model.Device{ProjectID: a.Project.ID, OwnerPrincipalID: a.Principal.ID, Platform: q.Platform, DisplayName: q.DisplayName}
 	k := model.DeviceKey{PublicKey: block.Bytes, KeyIdentifier: q.KeyIdentifier, Algorithm: q.Algorithm}
-	att := model.Attestation{AttestationType: result.Type, SecurityLevel: result.SecurityLevel, VerificationStatus: result.Status, VerifierVersion: result.VerifierVersion}
+	hardware := model.SecurityLevelProvesHardware(result.SecurityLevel)
+	assurance := model.ResolveAssurance(model.AssuranceEvidence{
+		Verified:          result.Status == "verified",
+		SecurityLevel:     result.SecurityLevel,
+		HardwareProtected: hardware,
+		BackupEligible:    false,
+		TrustSource:       "android_key_attestation",
+	})
+	now := time.Now().UTC()
+	att := model.Attestation{
+		AttestationType:    result.Type,
+		SecurityLevel:      result.SecurityLevel,
+		AssuranceLevel:     assurance,
+		HardwareProtected:  hardware,
+		BackupEligible:     false,
+		BackupState:        false,
+		TrustSource:        "android_key_attestation",
+		VerificationStatus: result.Status,
+		VerifierVersion:    result.VerifierVersion,
+		LastEvaluatedAt:    &now,
+	}
 	e = rcvr.store.RegisterDevice(ctx, &d, &k, &att, a.Principal.ID)
 	return d, e
 }

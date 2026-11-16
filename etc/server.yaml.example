@@ -1,5 +1,6 @@
 Application:
   Server:
+    host: ""
     port: 8000
     # Optional direct TLS listener. Keep both paths empty when TLS terminates
     # at a trusted reverse proxy; when enabled, the server also serves HTTPS.
@@ -46,9 +47,20 @@ Application:
           cache_file: ""
           url: "https://mds.fidoalliance.org/"
           accept_legal_header: false
-    # Configure a stable RP ID distinct from Keycloak and every permitted
+        # Assurance is derived from verified evidence, never from the client's
+        # platform name. Standard policy allows synchronizable passkeys.
+        # For high assurance use:
+        #   required: hardware_attested
+        #   allow_synced_passkeys: false
+        # and configure a hardware-capable format or FIDO MDS.
+        assurance:
+          required: standard_passkey
+          allow_synced_passkeys: true
+          hardware_formats: [android-key, apple, tpm, fido-u2f]
+    # Configure a stable RP ID (e.g. gorapeflutter.site or your custom domain)
+    # distinct from Keycloak (e.g. idp.gorapeflutter.site) and every permitted
     # app/browser origin to enable Gorape device passkeys. Do not reuse the
-    # localhost-only development configuration from server.yaml.docker in prod.
+    # local development fmt=none configuration from server.yaml.docker in prod.
     webauthn:
       rp_id: ""
       rp_display_name: Gorape
@@ -62,7 +74,7 @@ Application:
     # Platform administrators can provision projects, roles and Keycloak
     # resources through /v1/platform/provisioning/{plan,apply}.
     platform:
-      issuer: https://keycloak.example.com/realms/gorape
+      issuer: https://idp.gorapeflutter.site/realms/gorape
       provider_url: ""
       admin_roles: [gorape-platform-admin]
     # Optional. When base_url is set, the server can apply Keycloak manifests.

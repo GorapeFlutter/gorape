@@ -22,13 +22,18 @@ GorapeはKeycloakのaccess tokenを検証し、Project/Group権限、Device登�
 ## Components
 
 ```text
-Client ── Authorization Code + PKCE ── Keycloak
+Client ── Authorization Code + PKCE ── Keycloak (idp.gorapeflutter.site)
    │                                      │
-   └──────── Access token ───────────── Gorape
+   └──────── Access token ───────────── Gorape (api.gorapeflutter.site / RP ID: gorapeflutter.site)
                                           ├── PostgreSQL
                                           └── Redis
 ```
 
+- 公式開発・検証用ドメイン: `gorapeflutter.site` (`*.gorapeflutter.site -> 127.0.0.1`)
+  - WebAuthn RP ID: `gorapeflutter.site` (独自ドメインへの変更も可能)
+  - OIDC Provider (Keycloak): `idp.gorapeflutter.site` (`http://idp.gorapeflutter.site:8080/realms/gorape` / 本番 `https://idp.gorapeflutter.site/realms/gorape`)
+  - Gorape API: `api.gorapeflutter.site` (`https://api.gorapeflutter.site:8443` / `http://api.gorapeflutter.site:8000`)
+  - ブラウザセレモニー / アプリ設定: `app.gorapeflutter.site` (`https://app.gorapeflutter.site:5174`)
 - Keycloak RealmとProjectは1対1
 - Principalは検証済み `iss + sub` だけを保持
 - Project/Group単位のpermission-based authorization
