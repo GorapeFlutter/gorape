@@ -288,6 +288,7 @@ func NewWebAuthnRP(config WebAuthnRPConfig) (*WebAuthnRP, error) {
 // A nil *FidoMDSProvider assigned to metadata.Provider is a non-nil interface.
 // Normalize nil-able implementations before passing them to go-webauthn, which
 // invokes the provider during attestation validation.
+// GF-10045 — Normalizes typed-nil MDS providers before WebAuthn initialization.
 func normalizeMetadataProvider(provider metadata.Provider) metadata.Provider {
 	if provider == nil {
 		return nil

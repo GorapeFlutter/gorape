@@ -15,12 +15,12 @@ runtime protocol values.
 | [GF-10007](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/project.go#L158) | Resolve effective project/group permissions |
 | [GF-10008](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/device.go#L146) | Require passkey AMR for device operations |
 | [GF-10009](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/challenge.go#L75) | Atomically consume a one-time challenge |
-| [GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L99) | Construct the configured WebAuthn RP and trust policy |
-| [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L816) | Validate RP ID and exact origin allowlist |
-| [GF-10012](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L311) | Create WebAuthn registration options |
-| [GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L350) | Verify registration response and attestation |
-| [GF-10014](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L475) | Create WebAuthn assertion options |
-| [GF-10015](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L489) | Verify a WebAuthn assertion |
+| [GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L100) | Construct the configured WebAuthn RP and trust policy |
+| [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L836) | Validate RP ID and exact origin allowlist |
+| [GF-10012](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L331) | Create WebAuthn registration options |
+| [GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L370) | Verify registration response and attestation |
+| [GF-10014](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L495) | Create WebAuthn assertion options |
+| [GF-10015](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L509) | Verify a WebAuthn assertion |
 | [GF-10016](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L92) | Authorize and issue device registration options |
 | [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L152) | Consume registration challenge and persist credential |
 | [GF-10018](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L313) | Authorize and issue device proof options |
@@ -35,7 +35,7 @@ runtime protocol values.
 | [GF-10027](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/mds.go#L68) | Load and verify a signed FIDO MDS BLOB |
 | [GF-10028](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/mds.go#L131) | Look up AAGUID metadata after validating freshness |
 | [GF-10029](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/mds.go#L168) | Refresh FIDO MDS BLOB at nextUpdate and reject stale data |
-| [GF-10030](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/mds.go#L224) | Verify FIDO MDS BLOB signature, legal header, and status |
+| [GF-10030](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/mds.go#L227) | Verify FIDO MDS BLOB signature, legal header, and status |
 | [GF-10031](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/attestation.go#L48) | Validate Android attestation package/signing digest policy |
 | [GF-10032](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/revocation.go#L92) | Configure bounded CRL/OCSP revocation checker and cache |
 | [GF-10033](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/revocation.go#L166) | Fail closed on revoked or uncheckable certificate status |
@@ -45,11 +45,12 @@ runtime protocol values.
 | [GF-10037](https://github.com/Gorapeflutter/gorape/blob/main/pkg/config/base.go#L194) | Normalize server listener, TLS, OIDC, attestation, and WebAuthn configuration |
 | [GF-10038](https://github.com/Gorapeflutter/gorape/blob/main/pkg/entity/model/attestation_record.go#L69) | Resolve assurance from verified credential evidence |
 | [GF-10039](https://github.com/Gorapeflutter/gorape/blob/main/migrations/000004_assurance.up.sql#L1) | Persist verified attestation assurance evidence |
-| [GF-10040](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L397) | Enforce per-assurance registration policy |
-| [GF-10041](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L435) | Re-evaluate assurance from MDS status and revocation |
+| [GF-10040](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L417) | Enforce per-assurance registration policy |
+| [GF-10041](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L455) | Re-evaluate assurance from MDS status and revocation |
 | [GF-10042](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L696) | Preserve authenticator transports for cross-device hints |
 | [GF-10043](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L738) | Enforce assurance consistently on assertions |
 | [GF-10044](https://github.com/Gorapeflutter/gorape/blob/main/pkg/config/base.go#L277) | Normalize the explicit WebAuthn assurance policy |
+| [GF-10045](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L291) | Normalize a typed-nil MDS provider before WebAuthn initialization |
 
 Run `python3 scripts/docs/link_gf_ids.py` to refresh links after moving source
 code. `scripts/check-docs.sh` verifies that every documented ID has a source

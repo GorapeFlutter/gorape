@@ -35,9 +35,9 @@ fingerprints and trusted attestation roots.
 2. The client passes the returned `public_key` options to its OS/browser
    credential provider and forwards the complete `PublicKeyCredential`
    response, including `clientDataJSON` and `attestationObject`.
-3. Gorape verifies the challenge, ceremony type, configured RP ID ([GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L99), [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L816)), exact allowed
+3. Gorape verifies the challenge, ceremony type, configured RP ID ([GF-10010](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L100), [GF-10011](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L836)), exact allowed
    origin, credential ID, credential public key, format-specific attestation
-   statement, and trust chain before storing the device ([GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L350), [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L152)).
+   statement, and trust chain before storing the device ([GF-10013](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L370), [GF-10017](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/usecase/passkey_device.go#L152)).
 4. For proof, Gorape issues a new single-use WebAuthn request challenge. The
    provider signs it; Gorape validates the assertion and updates authenticator
    counter/backup state.
@@ -108,6 +108,9 @@ attestation:
 
 `required: hardware_attested` requires `allow_synced_passkeys: false` and at
 least one hardware-capable format or FIDO MDS; this is validated at startup.
+When MDS is disabled, a typed-nil provider is normalized to an actual nil before
+the WebAuthn library is initialized, so verification uses the configured format
+trust anchors instead of dereferencing an absent MDS provider ([GF-10045](https://github.com/Gorapeflutter/gorape/blob/main/pkg/server/repository/webauthn.go#L291)).
 External proof requests may raise the requirement with `required_assurance`,
 but cannot lower the service policy. The same level names are returned by
 registration and proof verification.
